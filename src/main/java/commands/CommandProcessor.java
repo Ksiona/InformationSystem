@@ -45,7 +45,7 @@ public class CommandProcessor {
         boolean result = true;
         Scanner scanner = new Scanner(System.in, consoleEncoding);
         do {
-        	ds.DisplaySymbols(INVITATION_TO_PRINT);
+        	ds.DisplaySymbols(INVITATION_TO_PRINT);//TODO: Same here: too tight a bound with DS. 
             String fullCommand = scanner.nextLine();
             if (fullCommand == null || "".equals(fullCommand)) {
                 continue;
