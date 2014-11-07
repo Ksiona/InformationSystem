@@ -24,18 +24,23 @@ public class CommandProcessor {
  
     public CommandProcessor(DisplaySystem ds, String consoleEncoding) {
         commands = new TreeMap<>();
-        Command cmd = new HelpCommand(commands);
-        commands.put(cmd.getName(), cmd);
-        cmd = new TrackCommand();
-        commands.put(cmd.getName(), cmd);
-        cmd = new GenreCommand();
-        commands.put(cmd.getName(), cmd);
-        cmd = new SearchCommand();
-        commands.put(cmd.getName(), cmd);
+        Command cmd = new HelpCommand(commands);//Command that contains all commands and also itself? Not cool, not at all
+        commands.put(cmd.getName(), cmd);//copy
+        cmd = new TrackCommand();//and paste
+        commands.put(cmd.getName(), cmd);//and copy
+        cmd = new GenreCommand();//and paste
+        commands.put(cmd.getName(), cmd);//it makes me sad
+        putCommandIntoMap(new SearchCommand()); //that's way shorter, ain't it?
+        
         cmd = new ExitCommand();
         commands.put(cmd.getName(), cmd);
         this.consoleEncoding = consoleEncoding;
         this.ds = DisplaySystem.getInstance();
+    }
+    
+    private void putCommandIntoMap(Command c, Map<String, Command> map)
+    {
+    	map.put(c.getName(), c);
     }
  
     public void execute() {
@@ -43,7 +48,7 @@ public class CommandProcessor {
         Scanner scanner = new Scanner(System.in, consoleEncoding);
         do {
         	
-        	ds.DisplaySymbols("> ");
+        	ds.DisplaySymbols("> ");//TODO: No magic symbols. Move them to consts.
             String fullCommand = scanner.nextLine();
             if (fullCommand == null || "".equals(fullCommand)) {
                 continue;
@@ -54,7 +59,7 @@ public class CommandProcessor {
             }
             Command cmd = commands.get(parser.command.toUpperCase());
             if (cmd == null) {
-            	ds.DisplayMessage("Command not found");
+            	ds.DisplayMessage("Command not found");//Same here
                 continue;
             }
             result = cmd.execute(parser.args);
@@ -67,7 +72,7 @@ public class CommandProcessor {
  
         public ParsedCommand(String line) {
         	List<String> result = new ArrayList<>();
-        	Pattern pattern = Pattern.compile("((\\\"[^\"]+\\\")|\\S+)");
+        	Pattern pattern = Pattern.compile("((\\\"[^\"]+\\\")|\\S+)");//TODO: all magic must go into constants!
     		Matcher matcher = pattern.matcher(line);
     		while (matcher.find())
     		   result.add(matcher.group().replaceAll("\"",""));
