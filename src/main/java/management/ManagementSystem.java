@@ -79,7 +79,7 @@ public class ManagementSystem implements Listener {
         	musicLibrary.getRecordsList(oldGenre).removeRecord(currentTrack);
         	serialize("storage/"+genreName+".bin", musicLibrary.getRecordsList(genreName).getRecords());
         	serialize("storage/"+oldGenre+".bin", musicLibrary.getRecordsList(oldGenre).getRecords());
-        	ds.DisplayMessage("Track " + trackTitle +" now belongs to the genre " + genreName);
+        	ds.DisplayMessage("Track " + trackTitle +" now belongs to the genre " + genreName);//No, not like that.
     	} catch (IllegalArgumentException | IOException e){
     		ds.DisplayError(e);
     	}
@@ -100,7 +100,7 @@ public class ManagementSystem implements Listener {
 			Record newTrack = new Track(args[0], args[1], args[2], args[3], args[4]);
 			musicLibrary.insertRecord(newTrack);
 			serialize("storage/"+newTrack.getGenre()+".bin", musicLibrary.getRecordsList(newTrack.getGenre()).getRecords());
-			ds.DisplayMessage(WRITING_TO_FILE_SUCCESS + musicLibrary.getRecordsList(newTrack.getGenre()).getRecordsListName());
+			ds.DisplayMessage(WRITING_TO_FILE_SUCCESS + musicLibrary.getRecordsList(newTrack.getGenre()).getRecordsListName());//Too tight integration with DisplaySystem. Use publisher-subscriber model instead.
 		}catch (ArrayIndexOutOfBoundsException e){
 			ds.DisplayMessage("Don't skip parameters, if don't no info - type \"-\"");
 		}catch (IOException e) {
@@ -111,14 +111,14 @@ public class ManagementSystem implements Listener {
 	public void setTrack(String trackTitle, String ... args) {
 		ds.DisplayMessage("Adding track...");
 		Record oldTrack = musicLibrary.getRecord(trackTitle);
-		if(args[0].equals("-"))
-			args[0] = oldTrack.getGenre();
-		if(args[1].equals("-"))
-			args[1] = oldTrack.getTrackTitle();
-		if(args[2].equals("-"))
-			args[2] = oldTrack.getSinger();
-		if(args[3].equals("-"))
-			args[3] = oldTrack.getAlbum();
+		if(args[0].equals("-"))//This
+			args[0] = oldTrack.getGenre();//is
+		if(args[1].equals("-"))//copy
+			args[1] = oldTrack.getTrackTitle();//paste
+		if(args[2].equals("-"))//Please,
+			args[2] = oldTrack.getSinger();//rethink
+		if(args[3].equals("-"))//the whole
+			args[3] = oldTrack.getAlbum();//thing
 		if(args[4].equals("-"))
 			args[4] = oldTrack.getRecordLength();
 
@@ -157,7 +157,7 @@ public class ManagementSystem implements Listener {
     public void removeRecordsList(String genreName){
     	combineRecordsLists("Unsorted", genreName, "Unsorted");
     	try{
-			serialize("storage/Unsorted.bin", musicLibrary.getRecordsList("Unsorted").getRecords());
+			serialize("storage/Unsorted.bin"/*TODO:consts*/, musicLibrary.getRecordsList("Unsorted").getRecords());
 			File file = new File("storage/"+genreName+".bin");
 			if(file.exists()) {
 				file.delete();
@@ -198,6 +198,7 @@ public class ManagementSystem implements Listener {
     	}
 		try{
 			serialize("storage/"+newGenreName+".bin", musicLibrary.getRecordsList(newGenreName).getRecords());
+			//TODO: you call that every time. What can you do to write LESS code?
 			ds.DisplayMessage(WRITING_TO_FILE_SUCCESS + musicLibrary.getRecordsList(newGenreName));
 		}catch (IOException e) {
 			ds.DisplayError(e);
@@ -242,12 +243,12 @@ public class ManagementSystem implements Listener {
 
     public static void main(String[] args){
     	getInstance();
-    	System.setProperty("file.encoding","UTF-8");
-    	System.setProperty("console.encoding","Cp866");
-    	ds.DisplayMessage("Welcome to the information system \"Music Library\" \r\n"
-                + "To get instructions on how to use enter command \"help\"");
+    	System.setProperty("file.encoding","UTF-8");//TODO: Constants
+    	System.setProperty("console.encoding","Cp866");//OH
+    	ds.DisplayMessage("Welcome to the information system \"Music Library\" \r\n"//MY
+                + "To get instructions on how to use enter command \"help\"");//GOD 
     	
-    	String consoleEncoding = System.getProperty("console.encoding");
+    	String consoleEncoding = System.getProperty("console.encoding");//Constants!!
     	if (consoleEncoding != null) {
     	    try {
     	        System.setOut(new PrintStream(System.out, true, consoleEncoding));
@@ -255,7 +256,7 @@ public class ManagementSystem implements Listener {
     	    	ds.DisplayMessage("Unsupported encoding set for console: "+consoleEncoding);
     	    }
     	}
-    	CommandProcessor cp = new CommandProcessor(ds, System.getProperty("console.encoding"));
+    	CommandProcessor cp = new CommandProcessor(ds, System.getProperty("console.encoding"));//TWICE! O RLY?
         cp.execute();
     }
 
