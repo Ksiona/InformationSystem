@@ -49,14 +49,14 @@ public class ManagementSystem implements Listener {
 	private static DisplaySystem ds;
     private static ManagementSystem instance;
 
-	public ManagementSystem(){
-        MusicLibrary library = new MusicLibrary(loadGenres(STORAGE));
+	public ManagementSystem(){//Singleton pattern mustn't have public methods, otherwise it could be built bei external system, that is wron, because only one instance of singleton is allowed  
+        MusicLibrary library = new MusicLibrary(loadGenres(STORAGE));//it is very strange that you use ds resource before its initialisation, please take a look into loadGenres
         library.AddListener(this);
-        this.musicLibrary = library;
-        this.ds = DisplaySystem.getInstance();
+        this.musicLibrary = library; //but i like alot, that you perform initialisation of resources in constractors, that is very important
+        this.ds = DisplaySystem.getInstance(); //Why DisplaySystem is not a Singlton? please remove static initialisation 
     }
 
-    public static synchronized ManagementSystem getInstance(){
+    public static synchronized ManagementSystem getInstance(){ // if this class were real singleton it would not be necessary to perform synchronisation
         if (instance == null) {
             instance = new ManagementSystem();
         }
