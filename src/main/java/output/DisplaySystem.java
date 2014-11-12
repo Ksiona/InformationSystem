@@ -3,7 +3,6 @@ package output;
 import interfaces.Record;
 
 import java.util.Collection;
-import java.util.Formatter;
 import java.util.Iterator;
 
 /**
@@ -14,16 +13,16 @@ public class DisplaySystem {
 	private static final String ERROR = "Error: ";
 	private static final String LIST_FORMATTER = "%-30s %-9s %-30s %-20s %-20s%n";
 	private static final String HELP_FORMATTER = "%-50s %-90s%n";
-    private static DisplaySystem instance;
-	private enum Field{Title,Singer,Album,Length,Genre}
     private DisplaySystem(){}
-    public static DisplaySystem getInstance()
-    {
-    	 if (instance == null) {
-             instance = new DisplaySystem();
-         }
-        return instance;
-    }
+    
+	private static class SingletonHolder {
+		private static final DisplaySystem INSTANCE = new DisplaySystem();
+	}
+	
+	public static DisplaySystem getInstance() {
+		return SingletonHolder.INSTANCE;
+	}
+
     public void DisplayMessage(String message)
     {
         System.out.println(message);
@@ -58,4 +57,6 @@ public class DisplaySystem {
 		public void DisplayHelp(String name, String description) {
 			System.out.printf(HELP_FORMATTER, name, description);
 		}
+		
+		private enum Field{Title,Singer,Album,Length,Genre}
 }

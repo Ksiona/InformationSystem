@@ -17,6 +17,14 @@
                 </configuration>
             </plugin>
         </plugins>
+        <resources>
+      <resource>
+        <directory>E:\popcorn\workspace\InformationSystem\src\main\resources</directory>
+         <includes>
+           <include>*.properties</include>
+         </includes>
+      </resource>
+    </resources>
     </build>
     <dependencies>
     	<dependency>
@@ -25,5 +33,5 @@
     		<version>1.2.14</version>
     		<scope>runtime</scope>
     	</dependency>
-    </dependencies>
+    </dependencies>    
 </project>

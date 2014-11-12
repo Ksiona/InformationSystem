@@ -2,11 +2,10 @@ package commands;
 
 import interfaces.Command;
 import management.ManagementSystem;
-import output.DisplaySystem;
-
-import java.util.Map;
 
 import org.apache.log4j.Logger;
+
+import output.DisplaySystem;
 
 class ExitCommand implements Command {
 	
@@ -16,7 +15,6 @@ class ExitCommand implements Command {
 	private static final String EXIT_MESSAGE = "Finishing command processor... done.";
 	private static final Logger log = Logger.getLogger(ExitCommand.class);
 	private static ManagementSystem ms;
-	private Map<String, Command> commands;
 	private DisplaySystem ds;
 	
     public ExitCommand() {

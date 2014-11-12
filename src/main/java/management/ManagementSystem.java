@@ -25,11 +25,8 @@ import org.apache.log4j.Logger;
 
 import output.DisplaySystem;
 
-import commands.CommandProcessor;
-
 public class ManagementSystem implements Listener {
 	
-	private static final Object START = "Start application";
 	private static final String STORAGE = "Storage/";
 	private static final String UNSORTED_RECORDSLIST_NAME = "Unsorted";
 	private static final String FILE_EXTENSION = ".bin";
@@ -39,38 +36,30 @@ public class ManagementSystem implements Listener {
 	private static final String STATUS_INSERTING = "Inserting track...";
 	private static final String STATUS_WRITING_TO_FILE_SUCCESS = "Successfully updated storage: ";
 	private static final String STATUS_REMOVE_FILE_SUCCESS = "Successfully remove storage: ";
-	private static final String WELCOME_MESSAGE = "Welcome to the information system \"Music Library\" \r\n"
-										+ "To get instructions on how to use enter command \"help\"";
-	private static final String CONSOLE_ENCODING = "console.encoding";
-	private static final String CONSOLE_ENCODING_VALUE = "Cp866";
-	private static final String FILE_ENCODING = "file.encoding";
-	private static final String FILE_ENCODING_VALUE = "UTF-8";
-	private static final String WARNING_ENCODING = "Unsupported encoding set for console, the application will be closed, please contact support ";
-	private static final String WARNING_UNHANDLE = "A critical error has occurred, the application will be closed, please contact support";
+	private static final String FILE_HAS_BEEN_DELETED = " file has been deleted";
 	private static final String WARNING_GENRE_ALREADY_EXIST = " genre already exist";
+	private static final String WARNING_WRONG_PARAMETER = "Operation aborted, check the passed parameters, please";
 	
 	private static DisplaySystem ds;
-    private static ManagementSystem instance;
-
     private static final Logger log = Logger.getLogger(ManagementSystem.class);
-    private static final Logger rlog = Logger.getRootLogger();
 	private Library musicLibrary;
     private  List<String> genreFilesDuplicates = new ArrayList<>();;
 
-	public ManagementSystem(){
+	private ManagementSystem(){
         ManagementSystem.ds = DisplaySystem.getInstance();
         MusicLibrary library = new MusicLibrary(loadGenres(STORAGE));
         library.AddListener(this);
         this.musicLibrary = library;
     }
 
-    public static synchronized ManagementSystem getInstance(){
-        if (instance == null) {
-            instance = new ManagementSystem();
-        }
-        return instance;
-    }
-    
+	private static class SingletonHolder {
+		private static final ManagementSystem INSTANCE = new ManagementSystem();
+	}
+	
+	public static ManagementSystem getInstance() {
+		return SingletonHolder.INSTANCE;
+	}
+	
     public List<RecordsList> loadGenres(String storage){
     	List<RecordsList> genres = new ArrayList<>();
     	Collection<Record> tracks = new HashSet<>();
@@ -128,7 +117,7 @@ public class ManagementSystem implements Listener {
 		    	}
 		    	if ( !match ) {
 		    		new File(STORAGE+fileName+FILE_EXTENSION).deleteOnExit();
-		    		log.info(STORAGE+fileName+FILE_EXTENSION +" was removed");
+		    		log.info(STORAGE+fileName+FILE_EXTENSION + FILE_HAS_BEEN_DELETED);
 		    	}
 		    }
 		}
@@ -197,8 +186,11 @@ public class ManagementSystem implements Listener {
 						}
 				}
 			serialize(track.getGenre());
-		} catch (IntrospectionException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		} catch (ArrayIndexOutOfBoundsException ex) {
+			throw new IllegalArgumentException(WARNING_WRONG_PARAMETER);
+		} catch (IntrospectionException | IllegalAccessException | InvocationTargetException e) {
 			ds.DisplayError(e);
+			log.error(e);
 		}
 	}
 	
@@ -248,7 +240,8 @@ public class ManagementSystem implements Listener {
     		musicLibrary.removeRecordsList(genreNameFrom);
     		File file = new File(STORAGE+genreNameFrom+FILE_EXTENSION);
 			if(file.exists()) {
-				file.delete();
+				file.deleteOnExit();;
+				log.info(STORAGE+file.getName()+ FILE_HAS_BEEN_DELETED);
 			}
     	}catch (IllegalArgumentException e){
     		ds.DisplayError(e);
@@ -311,24 +304,6 @@ public class ManagementSystem implements Listener {
 		return obj;
 	}
     
-    public static void main(String[] args){
-    	log.info(START);
-    	try {
-        	getInstance();
-        	System.setProperty(FILE_ENCODING, FILE_ENCODING_VALUE);
-        	System.setProperty(CONSOLE_ENCODING, CONSOLE_ENCODING_VALUE);
-    		System.setOut(new PrintStream(System.out, true, CONSOLE_ENCODING_VALUE));
-        	ds.DisplayMessage(WELCOME_MESSAGE);
-        	CommandProcessor cp = new CommandProcessor(ds, CONSOLE_ENCODING_VALUE);
-        	cp.execute();
-    	} catch (UnsupportedEncodingException ex) {
-    		ds.DisplayMessage(WARNING_ENCODING);
-    		rlog.fatal(ex.getMessage(), ex);
-    	} catch (Throwable e){
-    		ds.DisplayMessage(WARNING_UNHANDLE);
-    		rlog.fatal(e.getMessage(), e);;
-    	}
-    }
 
     @Override
     public void doEvent(Object arg) {
