@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 public class CommandParser {
 	
-	static final String REGEXP_SKIP_SPACES_IN_QUOTS = "((\\\"[^\"]+\\\")|\\S+)";
+	static final String REGEXP_SKIP_SPACES_IN_QUOTS_AND_UNRESOLVED_SYMBOLS = "((\\\"[^\"]+\\\")|([\\w-*?\\.])+)";
 	static final String SHIELDED_QUOTE = "\"";
 	static final String EMPTY_STRING = "";
     protected String command;
@@ -15,10 +15,11 @@ public class CommandParser {
 
     public CommandParser(String line) {
     	List<String> result = new ArrayList<>();
-    	Pattern pattern = Pattern.compile(REGEXP_SKIP_SPACES_IN_QUOTS);
+    	Pattern pattern = Pattern.compile(REGEXP_SKIP_SPACES_IN_QUOTS_AND_UNRESOLVED_SYMBOLS);
 		Matcher matcher = pattern.matcher(line);
-		while (matcher.find())
-		   result.add(matcher.group().replaceAll(SHIELDED_QUOTE, EMPTY_STRING));
+		while (matcher.find()){
+			result.add(matcher.group().replaceAll(SHIELDED_QUOTE, EMPTY_STRING));
+		}
 	
         if (result != null) {
             command = result.get(0);

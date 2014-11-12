@@ -11,6 +11,8 @@ import java.util.HashSet;
 import java.util.List;
 
 public class MusicLibrary implements Library{
+	private static final String WARNING_NO_CORRECT_VALUE = "- wrong value, or you forgot to use quotation marks";
+	private static final Object STATUS_SUCCESSFUL = "Operation successful";
 	private List<RecordsList> genres;
     private Collection<Listener> listeners;
 	public MusicLibrary(List<RecordsList> genres) {
@@ -54,7 +56,7 @@ public class MusicLibrary implements Library{
     		}
     	}
     	if (genre == null)
-    		throw new IllegalArgumentException("Wrong name of genre, or you forgot to use quotation marks");
+    		throw new IllegalArgumentException(genreName + WARNING_NO_CORRECT_VALUE);
 		return genre;
     }
     
@@ -68,7 +70,7 @@ public class MusicLibrary implements Library{
     				break;
     			}
     	if (track == null)
-    		throw new IllegalArgumentException("Wrong title of track, or you forgot to use quotation marks");
+    		throw new IllegalArgumentException(trackTitle + WARNING_NO_CORRECT_VALUE);
     	return track;
     }
     
@@ -77,7 +79,7 @@ public class MusicLibrary implements Library{
 		Record track = getRecord(trackTitle);
 		RecordsList genre = getRecordsList(track.getGenre());
 		genre.setRecord(trackTitle, newTrack);
-        this.notifyListeners("Operation successful");
+        this.notifyListeners(STATUS_SUCCESSFUL);
 	}
 	
 	@Override
@@ -95,13 +97,13 @@ public class MusicLibrary implements Library{
 			newGenreTracks.add(newTrack);
 			genres.add(new Genre(newTrack.getGenre(), newGenreTracks));
 		}
-        this.notifyListeners("Operation successful");
+        this.notifyListeners(STATUS_SUCCESSFUL);
 	}
 
 	@Override
 	public void removeRecord(String genreName, Record currentTrack) {
 		getRecordsList(genreName).removeRecord(currentTrack);
-        this.notifyListeners("Operation successful");
+        this.notifyListeners(STATUS_SUCCESSFUL);
 	}
 	
 	@Override
@@ -109,12 +111,15 @@ public class MusicLibrary implements Library{
 		genres.remove(getRecordsList(genreName));
 	}
 	
-	public void insertRecordsList(String newGenreName){
+	public boolean checkExist(String newGenreName){
 		for(RecordsList genre:genres)
 			if(genre.getRecordsListName().equalsIgnoreCase(newGenreName))
-				throw new IllegalArgumentException("Genre, with name <" + newGenreName + "> already exist");
-			
-			Collection<Record> newGenreTracks = new HashSet<>();
-			genres.add(new Genre(newGenreName, newGenreTracks));
+				return true;
+		return false;
+	}
+	
+	public void insertRecordsList(String newGenreName, Collection<Record> newGenreTracks){
+			if(!checkExist(newGenreName))
+				genres.add(new Genre(newGenreName, newGenreTracks));
 	}
 }

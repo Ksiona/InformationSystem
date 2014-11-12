@@ -1,5 +1,7 @@
 package commands;
 
+import org.apache.log4j.Logger;
+
 import interfaces.Command;
 import management.ManagementSystem;
 import output.DisplaySystem;
@@ -18,12 +20,12 @@ class TrackCommand implements Command {
 	private static final String SUBCOMMAND_INFO_FORMAT = "-i <track title>";
 	private static final String SUBCOMMAND_INFO_FORMAT_DESCRIPTION = "get track info";
 	private static final String SUBCOMMAND_SET_FORMAT = "-s <track title> <parameter> <new value>";
-	private static final String SUBCOMMAND_SET_FORMAT_DESCRIPTION = "set track info, you can change several parameters at once,"
-																	+ "parameters names: <title> <singer> <album> <length>"
-																	+ "use the key -g to set track genre, please";
+	private static final String SUBCOMMAND_SET_FORMAT_DESCRIPTION = "set track info, you can change several parameters at once, \r\n\n"
+																	+ "parameters names: <title> <singer> <album> <length>, don't enter value is identical to the parameter, it will cause errors \r\n"
+																	+ "use the key -g to set track genre, please \r\n";
 	private static final String SUBCOMMAND_INSERT_FORMAT = "-a <track parameters>";
-	private static final String SUBCOMMAND_INSERT_FORMAT_DESCRIPTION = "add track into library, enter parameters in sequence "+
-																		": <genre> <track title> <singer> <album> <record length>";
+	private static final String SUBCOMMAND_INSERT_FORMAT_DESCRIPTION = "add track into library, \r\n\n"
+																	+ "enter parameters in sequence: <genre> <track title> <singer> <album> <record length> \r\n";
 	private static final String SUBCOMMAND_REMOVE_FORMAT = "-r <track title> <genre name>";
 	private static final String SUBCOMMAND_REMOVE_FORMAT_DESCRIPTION = "remove track with title from genre";
 	private static final String SUBCOMMAND_SETGENRE_FORMAT = "-g <track title> <genre name>";
@@ -32,6 +34,7 @@ class TrackCommand implements Command {
 	private static final String SUBCOMMAND_PRINT_FORMAT_DESCRIPTION = "print titles of all available tracks";
 	private static final String ARGUMENT_LENGTH_REPLACEMENT = "recordLength";
 	private static final String ARGUMENT_TITLE_REPLACEMENT = "trackTitle";
+	private static final Logger log = Logger.getLogger(TrackCommand.class);
 	
 	private static ManagementSystem ms;
 	private DisplaySystem ds;
@@ -51,8 +54,9 @@ class TrackCommand implements Command {
 				ds.DisplayMessage(subCommand.getWarning());	
 			else 
 				subCommand.process(args);		
-		} catch (RuntimeException e){
+		} catch (IllegalArgumentException e){
 			ds.DisplayError(e);
+			log.warn(e.getMessage(), e);
 		}
         return true;
     }
@@ -155,9 +159,7 @@ class TrackCommand implements Command {
 
 			@Override
 			public void process(String... args) {
-				String[] arguments = new String[args.length - 1];
-				System.arraycopy(args, 1, arguments, 0, arguments.length);
-				ms.insertTrack(arguments);
+				ms.insertTrack(args);
 			}
 		},
 		GENRE(SUBCOMMAND_SETGENRE_FORMAT.substring(0, 2)){
@@ -254,7 +256,7 @@ class TrackCommand implements Command {
 	        for (SubCommand sCom: SubCommand.values()) 
 	            if (sCom.getKey().equals(key)) 
 	                return sCom;
-	        throw new RuntimeException(COMMAND_NOT_FOUND);
+	        throw new IllegalArgumentException(COMMAND_NOT_FOUND);
 	    }
 		
 		public  String getKey(){

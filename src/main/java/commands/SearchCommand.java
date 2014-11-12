@@ -1,5 +1,7 @@
 package commands;
 
+import org.apache.log4j.Logger;
+
 import interfaces.Command;
 import management.ManagementSystem;
 import output.DisplaySystem;
@@ -27,6 +29,7 @@ public class SearchCommand implements Command{
 			"search mask example \" *m?3 \"\r\n"+
 			"where \"*\" - any or none symbols\r\n"+
 			"      \"?\" - any or none single symbol\r\n";
+	private static final Logger log = Logger.getLogger(SearchCommand.class);
     private DisplaySystem ds;
     private static  ManagementSystem ms;
     public SearchCommand()
@@ -40,12 +43,13 @@ public class SearchCommand implements Command{
             ds.DisplayMessage(WARNING_NO_COMMAND_PARAMETER);
         else try{
         	SubCommand subCommand = SubCommand.getName(args[0]);
-			if(args.length < 2)
-				ds.DisplayMessage(WARNING_SUBCOMMAND);	
-			else 
+			//if(args.length < 2)
+			//	ds.DisplayMessage(WARNING_SUBCOMMAND);	
+			//else 
 				subCommand.process(args);		
-		} catch (RuntimeException e){
+		} catch (IllegalArgumentException e){
 			ds.DisplayError(e);
+			log.warn(e.getMessage(), e);
 		}
         return true;
     }
@@ -163,7 +167,7 @@ public class SearchCommand implements Command{
 	                return sCom;
 	            }
 	        }
-	        throw new RuntimeException(COMMAND_NOT_FOUND);
+	        throw new IllegalArgumentException(COMMAND_NOT_FOUND);
 	    }
 		public  String getKey(){
 			return this.key;	

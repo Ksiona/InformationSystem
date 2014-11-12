@@ -1,5 +1,7 @@
 package commands;
 
+import org.apache.log4j.Logger;
+
 import interfaces.Command;
 import management.ManagementSystem;
 import output.DisplaySystem;
@@ -26,7 +28,8 @@ public class GenreCommand implements Command {
 	private static final String SUBCOMMAND_PRINT_TRACKS_FORMAT_DESCRIPTION = "print tracks list of this genre";
 	private static final String SUBCOMMAND_SET_FORMAT = "-s <old genre name> <new genre name>";
 	private static final String SUBCOMMAND_SET_FORMAT_DESCRIPTION = "set new genre name";
-
+	private static final Logger log = Logger.getLogger(GenreCommand.class);
+	
 	private static ManagementSystem ms;
 	private DisplaySystem ds;
 	
@@ -45,8 +48,9 @@ public class GenreCommand implements Command {
 				 ds.DisplayMessage(subCommand.getWarning());	
 			 else 
 				 subCommand.process(args);		
-		 } catch (RuntimeException e){
+		 } catch (IllegalArgumentException e){
 			 ds.DisplayError(e);
+			 log.warn(e.getMessage(), e);
 		 }
 		 return true;
 	}
@@ -242,7 +246,7 @@ public class GenreCommand implements Command {
 	                return sCom;
 	            }
 	        }
-	        throw new RuntimeException(COMMAND_NOT_FOUND);
+	        throw new IllegalArgumentException(COMMAND_NOT_FOUND);
 	    }
 		public  String getKey(){
 			return this.key;	
