@@ -2,8 +2,10 @@ package commands;
 
 import interfaces.Command;
 
+import java.util.List;
 import java.util.Map;
 
+import commands.CommandProcessor.CommandLoader;
 import output.DisplaySystem;
 
 class HelpCommand implements Command {
@@ -14,34 +16,41 @@ class HelpCommand implements Command {
 	private static final String COLON = ": ";
 	private static final String INFO_MESSAGE_HELP = "Help for command ";
 	private static final String INFO_MESSAGE_AVAILABLE = "Available commands:\n";
-	private Map<String, Command> commands;
+	private static final String EXECUTION_SYMBOL_DESCRIBER = "\r\nAfter each full command, you must enter the symbol \"/\" for command execution";
+	private List<CommandLoader<?>> commands;
 	private DisplaySystem ds;
 	
-	public HelpCommand( Map<String, Command> commands) {
+	public HelpCommand(List<CommandLoader<?>> commands) {
 		this.commands = commands;
 		this.ds = DisplaySystem.getInstance();
 	}
 	 
     @Override
     public boolean execute(String... args) {
-        if (args == null) {
-        	ds.DisplayMessage(INFO_MESSAGE_AVAILABLE + LINE_DELIMITER);
-            for (Command cmd : commands.values()) {
-            	ds.DisplayMessage(cmd.getName() + COLON + cmd.getDescription());
-            }
-            ds.DisplayMessage(LINE_DELIMITER);
-        } else {
-            for (String cmd : args) {
-            	ds.DisplayMessage(INFO_MESSAGE_HELP + cmd + COLON + NEW_LINE + LINE_DELIMITER);
-                Command command = commands.get(cmd.toUpperCase());
-                if (command == null) {
-                	ds.DisplayMessage(COMMAND_NOT_FOUND);
-                } else {
-                    command.printHelp();
-                }
-                ds.DisplayMessage(LINE_DELIMITER);
-            }
-        }
+  	 	if (args == null) {
+			ds.DisplayMessage(INFO_MESSAGE_AVAILABLE + LINE_DELIMITER);
+			for (CommandLoader<?> cl : commands) {
+				Command cmd = (Command) cl.getInstance();
+				ds.DisplayMessage(cmd.getName() + COLON + cmd.getDescription());
+			}
+			ds.DisplayMessage(LINE_DELIMITER);
+			ds.DisplayMessage(EXECUTION_SYMBOL_DESCRIBER);
+		}else {
+			boolean isFinded = false;
+			for (CommandLoader<?> cl : commands) {
+				Command cmd = (Command) cl.getInstance();
+					if(cmd.getName().equalsIgnoreCase(args[0])){
+						ds.DisplayMessage(INFO_MESSAGE_HELP + args[0] + COLON + NEW_LINE + LINE_DELIMITER);
+						cmd.printHelp();
+						ds.DisplayMessage(LINE_DELIMITER);
+						isFinded = true;
+						break;
+					}
+			}
+			if (!isFinded) {
+				ds.DisplayMessage(COMMAND_NOT_FOUND);
+			} 
+		}
         return true;
     }
 

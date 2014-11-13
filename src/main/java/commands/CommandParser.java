@@ -7,9 +7,9 @@ import java.util.regex.Pattern;
 
 public class CommandParser {
 	
-	static final String REGEXP_SKIP_SPACES_IN_QUOTS_AND_UNRESOLVED_SYMBOLS = "((\\\"[^\"]+\\\")|([\\w-*?\\.])+)";
-	static final String SHIELDED_QUOTE = "\"";
-	static final String EMPTY_STRING = "";
+	private static final String REGEXP_SKIP_SPACES_IN_QUOTS_AND_UNRESOLVED_SYMBOLS = "((\\\"[^\"]+\\\")|([\\w-*?\\.])+)";
+	private static final String SHIELDED_QUOTE = "\"";
+	private static final String EMPTY_STRING = "";
     protected String command;
     protected String[] args;
 

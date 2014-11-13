@@ -19,7 +19,7 @@
         </plugins>
         <resources>
       <resource>
-        <directory>E:\popcorn\workspace\InformationSystem\src\main\resources</directory>
+        <directory>D:\popcorn\workspace\InformationSystem\src\main\resources</directory>
          <includes>
            <include>*.properties</include>
          </includes>

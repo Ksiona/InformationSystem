@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 
 public class MusicLibrary implements Library{
-	private static final String WARNING_NO_CORRECT_VALUE = "- wrong value, or you forgot to use quotation marks";
+	private static final String WARNING_NO_CORRECT_VALUE = " - wrong value, or you forgot to use quotation marks";
 	private static final Object STATUS_SUCCESSFUL = "Operation successful";
 	private List<RecordsList> genres;
     private Collection<Listener> listeners;

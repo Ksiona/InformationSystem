@@ -4,7 +4,6 @@ import interfaces.Command;
 import management.ManagementSystem;
 
 import org.apache.log4j.Logger;
-
 import output.DisplaySystem;
 
 class ExitCommand implements Command {
@@ -20,6 +19,14 @@ class ExitCommand implements Command {
     public ExitCommand() {
 		this.ds = DisplaySystem.getInstance();
 		this.ms = ManagementSystem.getInstance();
+	}
+    
+	private static class SingletonHolder {
+		private static final ExitCommand INSTANCE = new ExitCommand();
+	}
+	
+	public static ExitCommand getInstance() {
+		return SingletonHolder.INSTANCE;
 	}
 	
     @Override
