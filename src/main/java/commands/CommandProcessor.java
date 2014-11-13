@@ -2,10 +2,9 @@ package commands;
 
 import interfaces.Command;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
-import java.util.TreeMap;
-
 
 import org.apache.log4j.Logger;
 
@@ -19,23 +18,36 @@ public class CommandProcessor {
 	 
 	private static final String INVITATION_TO_PRINT = "> ";
 	private static final Logger log = Logger.getLogger(CommandProcessor.class);
-    private Map<String, Command> commands;
+    private List<CommandLoader<?>> commands;
 	private static DisplaySystem ds;
     private static String consoleEncoding;
     private Scanner scanner;
     private CommandParser parser;
+    HelpCommand hp;
     
   
     private CommandProcessor() {
         this.ds = DisplaySystem.getInstance();
-        commands = new TreeMap<>();
-        putCommandIntoMap(new HelpCommand(commands), commands);
-        putCommandIntoMap(new TrackCommand(), commands);
-        putCommandIntoMap(new GenreCommand(), commands);
-        putCommandIntoMap(new SearchCommand(), commands);
-        putCommandIntoMap(new ExitCommand(), commands);
+        commands = new ArrayList<>();
+        commands.add(new CommandLoader<>(TrackCommand.class));
+		commands.add(new CommandLoader<>(GenreCommand.class));
+		commands.add(new CommandLoader<>(SearchCommand.class));
+		commands.add(new CommandLoader<>(ExitCommand.class));
+		this.hp = new HelpCommand(commands);
         this.scanner = new Scanner(System.in, consoleEncoding);
-        
+    }
+    
+    class CommandLoader<T extends Command> {
+        Class<? extends T> commandClass;
+     
+        public CommandLoader(Class<? extends T>  commandClass) {
+            this.commandClass = commandClass;
+        }
+     
+        T getInstance() throws InstantiationException, IllegalAccessException {
+        	T instance = commandClass.newInstance();
+			return instance;
+        }
     }
     
 	private static class SingletonHolder {
@@ -47,13 +59,10 @@ public class CommandProcessor {
 		return SingletonHolder.INSTANCE;
 	}
  
-    private void putCommandIntoMap(Command c, Map<String, Command> map){
-    	map.put(c.getName(), c);
-    }
-    
     public void execute() {
     	try{
 	        boolean result = true; 
+	        boolean isFinded = false; 
 	        do {
 	        	ds.DisplaySymbols(INVITATION_TO_PRINT);
 	        	String fullCommand = "";
@@ -69,15 +78,23 @@ public class CommandProcessor {
 	            if (parser.command == null || "".equals(parser.command)) {
 	                continue;
 	            }
-	            Command cmd = commands.get(parser.command.toUpperCase());
-	            if (cmd == null) {
-	            	ds.DisplayMessage(Command.COMMAND_NOT_FOUND);
-	                continue;
-	            }
-	            result = cmd.execute(parser.args);
-	            
+	            if (parser.command.equalsIgnoreCase(hp.getName())){
+	            	result = hp.execute(parser.args);
+	            	isFinded = true;
+	            }else
+		            for(CommandLoader<?> cl:commands){
+		            	Command cmd = (Command)cl.getInstance();
+		            	if(cmd.getName().equalsIgnoreCase(parser.command)){
+		            		result = cmd.execute(parser.args);
+		            		isFinded = true;
+		            		break;
+		            	}
+		            }
+		            if(!isFinded)
+		            	ds.DisplayMessage(Command.COMMAND_NOT_FOUND);
+          
 	        } while (result);
-    	}catch(RuntimeException e){
+    	}catch(RuntimeException | InstantiationException | IllegalAccessException e){
     		ds.DisplayError(e);
     		log.warn(e.getMessage(), e);
     	}finally{

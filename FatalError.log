@@ -1,0 +1,72 @@
+10:09:55,253  FATAL main root:initCommandProcessor:47 - 
+java.lang.ExceptionInInitializerError
+	at commands.CommandProcessor.getInstance(CommandProcessor.java:93)
+	at init.InformationSystem.initCommandProcessor(InformationSystem.java:40)
+	at init.InformationSystem.<init>(InformationSystem.java:31)
+	at init.InformationSystem.main(InformationSystem.java:53)
+Caused by: java.lang.NullPointerException
+	at commands.CommandProcessor.putCommandIntoMap(CommandProcessor.java:97)
+	at commands.CommandProcessor.<init>(CommandProcessor.java:47)
+	at commands.CommandProcessor.<init>(CommandProcessor.java:37)
+	at commands.CommandProcessor$SingletonHolder.<clinit>(CommandProcessor.java:88)
+	... 4 more
+10:10:57,405  FATAL main root:initCommandProcessor:47 - 
+java.lang.ExceptionInInitializerError
+	at commands.CommandProcessor.getInstance(CommandProcessor.java:93)
+	at init.InformationSystem.initCommandProcessor(InformationSystem.java:40)
+	at init.InformationSystem.<init>(InformationSystem.java:31)
+	at init.InformationSystem.main(InformationSystem.java:53)
+Caused by: java.lang.NullPointerException
+	at commands.CommandProcessor.putCommandIntoMap(CommandProcessor.java:97)
+	at commands.CommandProcessor.<init>(CommandProcessor.java:47)
+	at commands.CommandProcessor.<init>(CommandProcessor.java:37)
+	at commands.CommandProcessor$SingletonHolder.<clinit>(CommandProcessor.java:88)
+	... 4 more
+10:16:31,332  FATAL main root:initCommandProcessor:47 - 
+java.lang.ExceptionInInitializerError
+	at commands.CommandProcessor.getInstance(CommandProcessor.java:93)
+	at init.InformationSystem.initCommandProcessor(InformationSystem.java:40)
+	at init.InformationSystem.<init>(InformationSystem.java:31)
+	at init.InformationSystem.main(InformationSystem.java:53)
+Caused by: java.lang.NullPointerException
+	at commands.CommandProcessor.putCommandIntoMap(CommandProcessor.java:97)
+	at commands.CommandProcessor.<init>(CommandProcessor.java:47)
+	at commands.CommandProcessor.<init>(CommandProcessor.java:37)
+	at commands.CommandProcessor$SingletonHolder.<clinit>(CommandProcessor.java:88)
+	... 4 more
+10:16:43,194  FATAL main root:initCommandProcessor:47 - 
+java.lang.ExceptionInInitializerError
+	at commands.CommandProcessor.getInstance(CommandProcessor.java:93)
+	at init.InformationSystem.initCommandProcessor(InformationSystem.java:40)
+	at init.InformationSystem.<init>(InformationSystem.java:31)
+	at init.InformationSystem.main(InformationSystem.java:53)
+Caused by: java.lang.NullPointerException
+	at commands.CommandProcessor.putCommandIntoMap(CommandProcessor.java:97)
+	at commands.CommandProcessor.<init>(CommandProcessor.java:47)
+	at commands.CommandProcessor.<init>(CommandProcessor.java:37)
+	at commands.CommandProcessor$SingletonHolder.<clinit>(CommandProcessor.java:88)
+	... 4 more
+10:19:38,388  FATAL main root:initCommandProcessor:47 - 
+java.lang.ExceptionInInitializerError
+	at commands.CommandProcessor.getInstance(CommandProcessor.java:96)
+	at init.InformationSystem.initCommandProcessor(InformationSystem.java:40)
+	at init.InformationSystem.<init>(InformationSystem.java:31)
+	at init.InformationSystem.main(InformationSystem.java:53)
+Caused by: java.lang.NullPointerException
+	at commands.CommandProcessor.putCommandIntoMap(CommandProcessor.java:100)
+	at commands.CommandProcessor.<init>(CommandProcessor.java:51)
+	at commands.CommandProcessor.<init>(CommandProcessor.java:37)
+	at commands.CommandProcessor$SingletonHolder.<clinit>(CommandProcessor.java:91)
+	... 4 more
+10:28:21,354  FATAL main root:initCommandProcessor:47 - 
+java.lang.ExceptionInInitializerError
+	at commands.CommandProcessor.getInstance(CommandProcessor.java:96)
+	at init.InformationSystem.initCommandProcessor(InformationSystem.java:40)
+	at init.InformationSystem.<init>(InformationSystem.java:31)
+	at init.InformationSystem.main(InformationSystem.java:53)
+Caused by: java.lang.NullPointerException
+	at commands.CommandProcessor.putCommandIntoMap(CommandProcessor.java:100)
+	at commands.CommandProcessor.<init>(CommandProcessor.java:51)
+	at commands.CommandProcessor.<init>(CommandProcessor.java:37)
+	at commands.CommandProcessor$SingletonHolder.<clinit>(CommandProcessor.java:91)
+	... 4 more
