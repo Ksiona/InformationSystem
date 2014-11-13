@@ -2,6 +2,8 @@ package commands;
 
 import interfaces.Command;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -17,13 +19,15 @@ import output.DisplaySystem;
 public class CommandProcessor {
 	 
 	private static final String INVITATION_TO_PRINT = "> ";
+	private static final String EMPTY_STRING = "";
+	private static final String KEY_COMMAND_END = "/";
 	private static final Logger log = Logger.getLogger(CommandProcessor.class);
     private List<CommandLoader<?>> commands;
 	private static DisplaySystem ds;
     private static String consoleEncoding;
     private Scanner scanner;
     private CommandParser parser;
-    HelpCommand hp;
+    private HelpCommand hp;
     
   
     private CommandProcessor() {
@@ -44,8 +48,18 @@ public class CommandProcessor {
             this.commandClass = commandClass;
         }
      
-        T getInstance() throws InstantiationException, IllegalAccessException {
-        	T instance = commandClass.newInstance();
+        @SuppressWarnings("unchecked")
+		T getInstance() {
+        	T instance = null;
+			try {
+	        	Method method = commandClass.getMethod("getInstance", null);
+				instance = (T) method.invoke(method, null);
+			} catch (IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException | NoSuchMethodException | SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	//T instance = commandClass.newInstance();
 			return instance;
         }
     }
@@ -62,20 +76,20 @@ public class CommandProcessor {
     public void execute() {
     	try{
 	        boolean result = true; 
-	        boolean isFinded = false; 
 	        do {
+		        boolean isFinded = false;
 	        	ds.DisplaySymbols(INVITATION_TO_PRINT);
-	        	String fullCommand = "";
+	        	String fullCommand = EMPTY_STRING;
 	        	String line;
 	        	do  {
 	        		line = scanner.nextLine();
-	        		 fullCommand += line;
-	        	}while (!line.contains("/"));
-	            if (fullCommand == null || "".equals(fullCommand)) {
+	        		fullCommand += line;
+	        	}while (!line.contains(KEY_COMMAND_END));
+	            if (fullCommand == null || EMPTY_STRING.equals(fullCommand)) {
 	                continue;
 	            }
 	            parser = new CommandParser(fullCommand);
-	            if (parser.command == null || "".equals(parser.command)) {
+	            if (parser.command == null || EMPTY_STRING.equals(parser.command)) {
 	                continue;
 	            }
 	            if (parser.command.equalsIgnoreCase(hp.getName())){
@@ -94,7 +108,7 @@ public class CommandProcessor {
 		            	ds.DisplayMessage(Command.COMMAND_NOT_FOUND);
           
 	        } while (result);
-    	}catch(RuntimeException | InstantiationException | IllegalAccessException e){
+    	}catch(RuntimeException e){
     		ds.DisplayError(e);
     		log.warn(e.getMessage(), e);
     	}finally{

@@ -1,7 +1,6 @@
 package commands;
 
 import org.apache.log4j.Logger;
-
 import interfaces.Command;
 import management.ManagementSystem;
 import output.DisplaySystem;
@@ -13,17 +12,17 @@ public class SearchCommand implements Command{
 
 	private static final String COMMAND_DESCRIPTION = "Defines operations with genre list";
 	private static final String COMMAND_NAME = "SEARCH";
-	private static final String WARNING_NO_COMMAND_PARAMETER = "You must specify the parameter. Type \"help search\" to view available";
+	private static final String WARNING_NO_COMMAND_PARAMETER = "You must specify the parameter. Type \"help search /\" to view available";
 	private static final String WARNING_SUBCOMMAND = "Enter <search mask> to process";
-	private static final String SUBCOMMAND_TITLE_FORMAT = "-t <search mask>";
+	private static final String SUBCOMMAND_TITLE_FORMAT = "-t <search mask> /";
 	private static final String SUBCOMMAND_TITLE_FORMAT_DESCRIPTION = "search by title";
-	private static final String SUBCOMMAND_ALBUM_FORMAT = "-a <search mask>";
+	private static final String SUBCOMMAND_ALBUM_FORMAT = "-a <search mask> /";
 	private static final String SUBCOMMAND_ALBUM_FORMAT_DESCRIPTION = "search by album name";
-	private static final String SUBCOMMAND_GENRE_FORMAT = "-g <search mask>";
+	private static final String SUBCOMMAND_GENRE_FORMAT = "-g <search mask> /";
 	private static final String SUBCOMMAND_GENRE_FORMAT_DESCRIPTION = "search by genre";
-	private static final String SUBCOMMAND_SINGER_FORMAT = "-s <search mask>";
+	private static final String SUBCOMMAND_SINGER_FORMAT = "-s <search mask> /";
 	private static final String SUBCOMMAND_SINGER_FORMAT_DESCRIPTION = "search by singer";
-	private static final String SUBCOMMAND_LENGTH_FORMAT = "-l <search mask>";
+	private static final String SUBCOMMAND_LENGTH_FORMAT = "-l <search mask> /";
 	private static final String SUBCOMMAND_LENGTH_FORMAT_DESCRIPTION = "search by length";
 	private static final String MASK_DESCRIPTION = "search is case-insensitive \r\n" +
 			"search mask example \" *m?3 \"\r\n"+
@@ -37,15 +36,24 @@ public class SearchCommand implements Command{
         this.ds = DisplaySystem.getInstance();
         this.ms = ManagementSystem.getInstance();
     }
+    
+	private static class SingletonHolder {
+		private static final SearchCommand INSTANCE = new SearchCommand();
+	}
+	
+	public static SearchCommand getInstance() {
+		return SingletonHolder.INSTANCE;
+	}
+    
     @Override
     public boolean execute(String... args) {
         if (args == null)
             ds.DisplayMessage(WARNING_NO_COMMAND_PARAMETER);
         else try{
         	SubCommand subCommand = SubCommand.getName(args[0]);
-			//if(args.length < 2)
-			//	ds.DisplayMessage(WARNING_SUBCOMMAND);	
-			//else 
+			if(args.length < 2)
+				ds.DisplayMessage(WARNING_SUBCOMMAND);	
+			else 
 				subCommand.process(args);		
 		} catch (IllegalArgumentException e){
 			ds.DisplayError(e);

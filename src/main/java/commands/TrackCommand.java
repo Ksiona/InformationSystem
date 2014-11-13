@@ -10,27 +10,27 @@ class TrackCommand implements Command {
 	
 	private static final String COMMAND_DESCRIPTION = "Defines operations with tracks";
 	private static final String COMMAND_NAME = "TRACK";
-	private static final String WARNING_NO_COMMAND_PARAMETER = "You must specify the parameter. Type \"help track\" to view available";
+	private static final String WARNING_NO_COMMAND_PARAMETER = "You must specify the parameter. Type \"help track  /\" to view available";
 	private static final String WARNING_SUBCOMMAND_INFO = "Enter track title to process";
 	private static final String WARNING_SUBCOMMAND_SET = "Enter track title and parameters with new values to process";
 	private static final String WARNING_SUBCOMMAND_INSERT = "Don't skip parameters, if don't no info - type \"-\" \r\n" +
-	 												"Example: -a \"genre\" \"title\" \"singer\" \"Album\" Record length";
+	 												"Example: -a \"genre\" \"title\" \"singer\" \"album\" record length";
 	private static final String WARNING_SUBCOMMAND_REMOVE = "Enter track title and genre name to remove";
 	private static final String WARNING_SUBCOMMAND_SET_GENRE = "Enter track title and genre name to process";
-	private static final String SUBCOMMAND_INFO_FORMAT = "-i <track title>";
+	private static final String SUBCOMMAND_INFO_FORMAT = "-i <track title> /";
 	private static final String SUBCOMMAND_INFO_FORMAT_DESCRIPTION = "get track info";
-	private static final String SUBCOMMAND_SET_FORMAT = "-s <track title> <parameter> <new value>";
+	private static final String SUBCOMMAND_SET_FORMAT = "-s <track title> <parameter> <new value> /";
 	private static final String SUBCOMMAND_SET_FORMAT_DESCRIPTION = "set track info, you can change several parameters at once, \r\n\n"
-																	+ "parameters names: <title> <singer> <album> <length>, don't enter value is identical to the parameter, it will cause errors \r\n"
+																	+ "parameters names: <title> <singer> <album> <length>, don't enter value is identical to the parameter, it will cause errors, and "
 																	+ "use the key -g to set track genre, please \r\n";
-	private static final String SUBCOMMAND_INSERT_FORMAT = "-a <track parameters>";
+	private static final String SUBCOMMAND_INSERT_FORMAT = "-a <track parameters> /";
 	private static final String SUBCOMMAND_INSERT_FORMAT_DESCRIPTION = "add track into library, \r\n\n"
 																	+ "enter parameters in sequence: <genre> <track title> <singer> <album> <record length> \r\n";
-	private static final String SUBCOMMAND_REMOVE_FORMAT = "-r <track title> <genre name>";
+	private static final String SUBCOMMAND_REMOVE_FORMAT = "-r <track title> <genre name> /";
 	private static final String SUBCOMMAND_REMOVE_FORMAT_DESCRIPTION = "remove track with title from genre";
-	private static final String SUBCOMMAND_SETGENRE_FORMAT = "-g <track title> <genre name>";
+	private static final String SUBCOMMAND_SETGENRE_FORMAT = "-g <track title> <genre name> /";
 	private static final String SUBCOMMAND_SET_GENRE_FORMAT_DESCRIPTION = "set another genre for track";
-	private static final String SUBCOMMAND_PRINT_FORMAT = "-p";
+	private static final String SUBCOMMAND_PRINT_FORMAT = "-p /";
 	private static final String SUBCOMMAND_PRINT_FORMAT_DESCRIPTION = "print titles of all available tracks";
 	private static final String ARGUMENT_LENGTH_REPLACEMENT = "recordLength";
 	private static final String ARGUMENT_TITLE_REPLACEMENT = "trackTitle";
@@ -44,16 +44,26 @@ class TrackCommand implements Command {
 		this.ms = ManagementSystem.getInstance();
 	}
     
+	private static class SingletonHolder {
+		private static final TrackCommand INSTANCE = new TrackCommand();
+	}
+	
+	public static TrackCommand getInstance() {
+		return SingletonHolder.INSTANCE;
+	}
+    
 	@Override
     public boolean execute(String... args) {
 		if (args == null) 
 			ds.DisplayMessage(WARNING_NO_COMMAND_PARAMETER);
 		else try{
 			SubCommand subCommand = SubCommand.getName(args[0]);
-			if((args.length -1) < subCommand.getMethodParametersQuantity())
+			String[] arguments = new String [args.length-1];
+			System.arraycopy(args, 1, arguments, 0, args.length-1);
+			if((arguments.length) < subCommand.getMethodParametersQuantity())
 				ds.DisplayMessage(subCommand.getWarning());	
 			else 
-				subCommand.process(args);		
+				subCommand.process(arguments);		
 		} catch (IllegalArgumentException e){
 			ds.DisplayError(e);
 			log.warn(e.getMessage(), e);
@@ -101,7 +111,7 @@ class TrackCommand implements Command {
 
 			@Override
 			public void process(String... args) {
-				ms.printTrackInfo(args[1]); 
+				ms.printTrackInfo(args[0]); 
 			}
 		}, 
 		SET(SUBCOMMAND_SET_FORMAT.substring(0, 2)){
@@ -133,7 +143,7 @@ class TrackCommand implements Command {
 					if (args[i].equalsIgnoreCase(Field.TITLE.name()))
 						args[i] = Field.TITLE.replacement;
 				}
-				ms.setTrack(args[1], args);
+				ms.setTrack(args[0], args);
 			}
 		}, 
 		INSERT(SUBCOMMAND_INSERT_FORMAT.substring(0, 2)){
@@ -185,7 +195,7 @@ class TrackCommand implements Command {
 
 			@Override
 			public void process(String... args) {
-				ms.moveRecordAnotherSet(args[1], args[2]);
+				ms.moveRecordAnotherSet(args[0], args[1]);
 			}
 		}, 
 		PRINT(SUBCOMMAND_PRINT_FORMAT.substring(0, 2)){
@@ -238,7 +248,7 @@ class TrackCommand implements Command {
 
 			@Override
 			public void process(String... args) {
-				ms.removeRecord(args[1], args[2]);
+				ms.removeRecord(args[0], args[1]);
 			}
 		};
 		

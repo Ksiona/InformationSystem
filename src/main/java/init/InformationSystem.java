@@ -1,5 +1,10 @@
 package init;
 
+/**
+ * @author Ksiona
+ * version 2.0
+ */
+
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 
@@ -14,7 +19,7 @@ public class InformationSystem {
 	
 	private static final String START = "Start application";
 	private static final String WELCOME_MESSAGE = "Welcome to the information system \"Music Library\" \r\n"
-			+ "To get instructions on how to use enter command \"help\"";
+			+ "To get instructions on how to use enter command \"help /\"";
 	private static final String CONSOLE_ENCODING = "console.encoding";
 	public static final String CONSOLE_ENCODING_VALUE = "Cp866";
 	private static final String FILE_ENCODING = "file.encoding";

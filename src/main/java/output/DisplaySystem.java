@@ -11,8 +11,8 @@ import java.util.Iterator;
 public class DisplaySystem {
 	private static final String DELIMITER = " | ";
 	private static final String ERROR = "Error: ";
-	private static final String LIST_FORMATTER = "%-30s %-9s %-30s %-20s %-20s%n";
-	private static final String HELP_FORMATTER = "%-50s %-90s%n";
+	private static final String LIST_FORMATTER = "%-30s %-10s %-35s %-20s %-25s%n";
+	private static final String HELP_FORMATTER = "%-50s %-70s%n";
     private DisplaySystem(){}
     
 	private static class SingletonHolder {

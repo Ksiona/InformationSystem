@@ -16,6 +16,7 @@ class HelpCommand implements Command {
 	private static final String COLON = ": ";
 	private static final String INFO_MESSAGE_HELP = "Help for command ";
 	private static final String INFO_MESSAGE_AVAILABLE = "Available commands:\n";
+	private static final String EXECUTION_SYMBOL_DESCRIBER = "\r\nAfter each full command, you must enter the symbol \"/\" for command execution";
 	private List<CommandLoader<?>> commands;
 	private DisplaySystem ds;
 	
@@ -26,36 +27,29 @@ class HelpCommand implements Command {
 	 
     @Override
     public boolean execute(String... args) {
-  	 	try {
-  	 		if (args == null) {
-  	 			ds.DisplayMessage(INFO_MESSAGE_AVAILABLE + LINE_DELIMITER);
-  	 			for (CommandLoader<?> cl : commands) {
-  	 				Command cmd = (Command) cl.getInstance();
-  	 				ds.DisplayMessage(cmd.getName() + COLON + cmd.getDescription());
-  	 			}
-  	 			ds.DisplayMessage(LINE_DELIMITER);
-  	 		}else {
-				boolean isFinded = false;
-				for (CommandLoader<?> cl : commands) {
-					Command cmd = (Command) cl.getInstance();
-						if(cmd.getName().equalsIgnoreCase(args[0])){
-							ds.DisplayMessage(INFO_MESSAGE_HELP + args[0] + COLON + NEW_LINE + LINE_DELIMITER);
-							cmd.printHelp();
-							ds.DisplayMessage(LINE_DELIMITER);
-							isFinded = true;
-							break;
-						}
-				}
-				if (!isFinded) {
-					ds.DisplayMessage(COMMAND_NOT_FOUND);
-				} 
-  	 		}
-    	} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+  	 	if (args == null) {
+			ds.DisplayMessage(INFO_MESSAGE_AVAILABLE + LINE_DELIMITER);
+			for (CommandLoader<?> cl : commands) {
+				Command cmd = (Command) cl.getInstance();
+				ds.DisplayMessage(cmd.getName() + COLON + cmd.getDescription());
+			}
+			ds.DisplayMessage(LINE_DELIMITER);
+			ds.DisplayMessage(EXECUTION_SYMBOL_DESCRIBER);
+		}else {
+			boolean isFinded = false;
+			for (CommandLoader<?> cl : commands) {
+				Command cmd = (Command) cl.getInstance();
+					if(cmd.getName().equalsIgnoreCase(args[0])){
+						ds.DisplayMessage(INFO_MESSAGE_HELP + args[0] + COLON + NEW_LINE + LINE_DELIMITER);
+						cmd.printHelp();
+						ds.DisplayMessage(LINE_DELIMITER);
+						isFinded = true;
+						break;
+					}
+			}
+			if (!isFinded) {
+				ds.DisplayMessage(COMMAND_NOT_FOUND);
+			} 
 		}
         return true;
     }

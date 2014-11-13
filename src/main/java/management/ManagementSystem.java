@@ -39,6 +39,7 @@ public class ManagementSystem implements Listener {
 	private static final String FILE_HAS_BEEN_DELETED = " file has been deleted";
 	private static final String WARNING_GENRE_ALREADY_EXIST = " genre already exist";
 	private static final String WARNING_WRONG_PARAMETER = "Operation aborted, check the passed parameters, please";
+	private static final String WARNING_CHECK_STORAGE = "Operation aborted, not found the main store, check the folder \"STORAGE\" in the program folder";
 	
 	private static DisplaySystem ds;
     private static final Logger log = Logger.getLogger(ManagementSystem.class);
@@ -83,6 +84,9 @@ public class ManagementSystem implements Listener {
 						}
 					}
 				}
+		} catch (NullPointerException e) {
+			ds.DisplayMessage(WARNING_CHECK_STORAGE);
+			log.error(e.getMessage(), e);
 		} catch (ClassNotFoundException | IOException e) {
 			ds.DisplayError(e);
 			log.error(e.getMessage(), e);
@@ -159,20 +163,26 @@ public class ManagementSystem implements Listener {
     }
 	
 	public void insertTrack(String ... args) {
-		ds.DisplayMessage(STATUS_INSERTING);
-		List<String> genreList = new ArrayList<>();
-		for(int i=1;i<args.length; i=i+5){
-			Record newTrack = new Track (args[i], args[i+1], args[i+2], args[i+3], args[i+4]);
-			if (((i-1)%5)==0 && newTrack !=null){
-				musicLibrary.insertRecord(newTrack);
-				genreList.add(newTrack.getGenre());
+		try{
+			ds.DisplayMessage(STATUS_INSERTING);
+			List<String> genreList = new ArrayList<>();
+			for(int i=0;i<args.length; i=i+5){
+				Record newTrack = new Track (args[i], args[i+1], args[i+2], args[i+3], args[i+4]);
+				if (((i)%5)==0 && newTrack !=null){
+					musicLibrary.insertRecord(newTrack);
+					genreList.add(newTrack.getGenre());
+				}
 			}
+			for (String genreName:genreList)
+				serialize(genreName);
+		}catch(ArrayIndexOutOfBoundsException e){
+			throw new IllegalArgumentException(WARNING_WRONG_PARAMETER);
 		}
-		for (String genreName:genreList)
-			serialize(genreName);
 	}
 	
 	public void setTrack(String trackTitle, String ... args){
+		if(args.length%2 != 1)
+			throw new IllegalArgumentException(WARNING_WRONG_PARAMETER);
 		ds.DisplayMessage(STATUS_SETTING);
 		try {
 			Record track = musicLibrary.getRecord(trackTitle);
@@ -216,10 +226,8 @@ public class ManagementSystem implements Listener {
 	}
     
     public void removeRecordsList(String genreName){
-    	combineRecordsLists(UNSORTED_RECORDSLIST_NAME, genreName, UNSORTED_RECORDSLIST_NAME);
     	try{
-			serialize(UNSORTED_RECORDSLIST_NAME);
-			musicLibrary.removeRecordsList(genreName);
+    		combineRecordsLists(UNSORTED_RECORDSLIST_NAME, genreName, UNSORTED_RECORDSLIST_NAME);
 			ds.DisplayMessage(STATUS_REMOVE_FILE_SUCCESS + genreName);
 		}catch (IllegalArgumentException e) {
 			ds.DisplayError(e);
@@ -232,6 +240,7 @@ public class ManagementSystem implements Listener {
     		genreTo  = musicLibrary.getRecordsList(genreNameTo);
     	}catch (IllegalArgumentException e){
 			insertRecordsList(genreNameTo);
+			genreTo  = musicLibrary.getRecordsList(genreNameTo);
 		}try{
     		for(Record record:musicLibrary.getRecordsList(genreNameFrom).getRecords()){
         		record.setGenre(genreNameTo);
@@ -239,11 +248,9 @@ public class ManagementSystem implements Listener {
         	}
     		musicLibrary.removeRecordsList(genreNameFrom);
     		File file = new File(STORAGE+genreNameFrom+FILE_EXTENSION);
-			if(file.exists()) {
-				file.deleteOnExit();;
-				log.info(STORAGE+file.getName()+ FILE_HAS_BEEN_DELETED);
-			}
-    	}catch (IllegalArgumentException e){
+    		file.deleteOnExit();;
+    		log.info(STORAGE + genreNameFrom + FILE_HAS_BEEN_DELETED);
+    	}catch (NullPointerException | IllegalArgumentException e){
     		ds.DisplayError(e);
 		}
     }
@@ -294,7 +301,7 @@ public class ManagementSystem implements Listener {
 		}
 	}
 	
-    private <classType> Object deserialize(String fileName, Class classType) throws IOException, ClassNotFoundException{
+    private <classType> Object deserialize(String fileName, Class<?> classType) throws IOException, ClassNotFoundException{
 		Object obj = null;
 		try (ObjectInputStream objectInStream = new ObjectInputStream(new FileInputStream(new File(fileName)));) {
 			obj = (classType) objectInStream.readObject();
