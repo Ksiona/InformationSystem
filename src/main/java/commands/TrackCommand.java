@@ -1,11 +1,7 @@
 package commands;
 
-import interfaces.Listener;
-import org.apache.log4j.Logger;
-
 import interfaces.Command;
 import management.ManagementSystem;
-import output.DisplaySystem;
 import output.HelpContainer;
 
 class TrackCommand implements Command {
@@ -36,39 +32,27 @@ class TrackCommand implements Command {
 	private static final String SUBCOMMAND_PRINT_FORMAT_DESCRIPTION = "print titles of all available tracks";
 	private static final String ARGUMENT_LENGTH_REPLACEMENT = "recordLength";
 	private static final String ARGUMENT_TITLE_REPLACEMENT = "trackTitle";
-	private static final Logger log = Logger.getLogger(TrackCommand.class);
 	
 	private static ManagementSystem ms;
-	private Listener ds;
 	
     public TrackCommand() {
-		this.ds = DisplaySystem.getInstance();
-		this.ms = ManagementSystem.getInstance();
-	}
-    
-	private static class SingletonHolder {
-		private static final TrackCommand INSTANCE = new TrackCommand();
-	}
-	
-	public static TrackCommand getInstance() {
-		return SingletonHolder.INSTANCE;
+		TrackCommand.ms = ManagementSystem.getInstance();
 	}
     
 	@Override
     public boolean execute(String... args) {
 		if (args == null) 
-			ds.doEvent(WARNING_NO_COMMAND_PARAMETER);
+			throw new IndexOutOfBoundsException(WARNING_NO_COMMAND_PARAMETER);
 		else try{
 			SubCommand subCommand = SubCommand.getName(args[0]);
 			String[] arguments = new String [args.length-1];
 			System.arraycopy(args, 1, arguments, 0, args.length-1);
 			if((arguments.length) < subCommand.getMethodParametersQuantity())
-				ds.doEvent(subCommand.getWarning());
+				throw new IndexOutOfBoundsException(subCommand.getWarning());
 			else 
 				subCommand.process(arguments);		
 		} catch (IllegalArgumentException e){
-			ds.doEvent(e);
-			log.warn(e.getMessage(), e);
+			throw new IllegalArgumentException(e.getMessage());
 		}
         return true;
     }
@@ -76,7 +60,7 @@ class TrackCommand implements Command {
     @Override
     public void printHelp() {
     	for(SubCommand sc: SubCommand.values())
-			ds.doEvent(new HelpContainer(sc.getFormat(), sc.getDescription()));
+			ms.doEvent(new HelpContainer(sc.getFormat(), sc.getDescription()));
     }
 
     @Override

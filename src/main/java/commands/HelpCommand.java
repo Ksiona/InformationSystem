@@ -1,13 +1,13 @@
 package commands;
 
 import interfaces.Command;
+import interfaces.Listener;
 
 import java.util.List;
-import java.util.Map;
+
+import management.ManagementSystem;
 
 import commands.CommandProcessor.CommandLoader;
-import interfaces.Listener;
-import output.DisplaySystem;
 
 class HelpCommand implements Command {
 	
@@ -19,37 +19,37 @@ class HelpCommand implements Command {
 	private static final String INFO_MESSAGE_AVAILABLE = "Available commands:\n";
 	private static final String EXECUTION_SYMBOL_DESCRIBER = "\r\nAfter each full command, you must enter the symbol \"/\" for command execution";
 	private List<CommandLoader<?>> commands;
-	private Listener ds;
+	private Listener ms;
 	
 	public HelpCommand(List<CommandLoader<?>> commands) {
 		this.commands = commands;
-		this.ds = DisplaySystem.getInstance();
+		this.ms = ManagementSystem.getInstance();
 	}
 	 
     @Override
     public boolean execute(String... args) {
   	 	if (args == null) {
-			ds.doEvent(INFO_MESSAGE_AVAILABLE + LINE_DELIMITER);
+			ms.doEvent(INFO_MESSAGE_AVAILABLE + LINE_DELIMITER);
 			for (CommandLoader<?> cl : commands) {
 				Command cmd = (Command) cl.getInstance();
-				ds.doEvent(cmd.getName() + COLON + cmd.getDescription());
+				ms.doEvent(cmd.getName() + COLON + cmd.getDescription());
 			}
-			ds.doEvent(LINE_DELIMITER);
-			ds.doEvent(EXECUTION_SYMBOL_DESCRIBER);
+			ms.doEvent(LINE_DELIMITER);
+			ms.doEvent(EXECUTION_SYMBOL_DESCRIBER);
 		}else {
 			boolean isFinded = false;
 			for (CommandLoader<?> cl : commands) {
 				Command cmd = (Command) cl.getInstance();
 					if(cmd.getName().equalsIgnoreCase(args[0])){
-						ds.doEvent(INFO_MESSAGE_HELP + args[0] + COLON + NEW_LINE + LINE_DELIMITER);
+						ms.doEvent(INFO_MESSAGE_HELP + args[0] + COLON + NEW_LINE + LINE_DELIMITER);
 						cmd.printHelp();
-						ds.doEvent(LINE_DELIMITER);
+						ms.doEvent(LINE_DELIMITER);
 						isFinded = true;
 						break;
 					}
 			}
 			if (!isFinded) {
-				ds.doEvent(COMMAND_NOT_FOUND);
+				ms.doEvent(COMMAND_NOT_FOUND +"here");
 			} 
 		}
         return true;
@@ -57,7 +57,7 @@ class HelpCommand implements Command {
 
     @Override
     public void printHelp() {
-    	ds.doEvent(getDescription());
+    	ms.doEvent(getDescription());
     }
 
     @Override

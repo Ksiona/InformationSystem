@@ -1,10 +1,7 @@
 package commands;
 
-import interfaces.Listener;
-import org.apache.log4j.Logger;
 import interfaces.Command;
 import management.ManagementSystem;
-import output.DisplaySystem;
 import output.HelpContainer;
 
 /**
@@ -30,36 +27,24 @@ public class SearchCommand implements Command{
 			"search mask example \" *m?3 \"\r\n"+
 			"where \"*\" - any or none symbols\r\n"+
 			"      \"?\" - any or none single symbol\r\n";
-	private static final Logger log = Logger.getLogger(SearchCommand.class);
-    private Listener ds;
     private static  ManagementSystem ms;
     public SearchCommand()
     {
-        this.ds = DisplaySystem.getInstance();
-        this.ms = ManagementSystem.getInstance();
+        SearchCommand.ms = ManagementSystem.getInstance();
     }
-    
-	private static class SingletonHolder {
-		private static final SearchCommand INSTANCE = new SearchCommand();
-	}
-	
-	public static SearchCommand getInstance() {
-		return SingletonHolder.INSTANCE;
-	}
     
     @Override
     public boolean execute(String... args) {
         if (args == null)
-            ds.doEvent(WARNING_NO_COMMAND_PARAMETER);
+        	throw new IndexOutOfBoundsException(WARNING_NO_COMMAND_PARAMETER);
         else try{
         	SubCommand subCommand = SubCommand.getName(args[0]);
 			if(args.length < 2)
-				ds.doEvent(WARNING_SUBCOMMAND);
+				throw new IndexOutOfBoundsException(WARNING_SUBCOMMAND);
 			else 
 				subCommand.process(args);		
 		} catch (IllegalArgumentException e){
-			ds.doEvent(e);
-			log.warn(e.getMessage(), e);
+			throw new IllegalArgumentException(e.getMessage());
 		}
         return true;
     }
@@ -67,8 +52,8 @@ public class SearchCommand implements Command{
     @Override
     public void printHelp() {
     	for(SubCommand sc: SubCommand.values())
-			ds.doEvent(new HelpContainer(sc.getFormat(), sc.getDescription()));
-	   	ds.doEvent(MASK_DESCRIPTION);
+    		ms.doEvent(new HelpContainer(sc.getFormat(), sc.getDescription()));
+    	ms.doEvent(MASK_DESCRIPTION);
     }
 
     @Override

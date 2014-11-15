@@ -1,17 +1,14 @@
 package commands;
 
 import interfaces.Command;
+import interfaces.Listener;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import interfaces.Listener;
+import management.ManagementSystem;
 import org.apache.log4j.Logger;
-
-import output.DisplaySystem;
  
 /**
  * @author Ksiona
@@ -24,7 +21,7 @@ public class CommandProcessor {
 	private static final String KEY_COMMAND_END = "/";
 	private static final Logger log = Logger.getLogger(CommandProcessor.class);
     private List<CommandLoader<?>> commands;
-	private static Listener ds;
+	private static Listener ms;
     private static String consoleEncoding;
     private Scanner scanner;
     private CommandParser parser;
@@ -32,7 +29,7 @@ public class CommandProcessor {
     
   
     private CommandProcessor() {
-        this.ds = DisplaySystem.getInstance();
+        CommandProcessor.ms = ManagementSystem.getInstance();
         commands = new ArrayList<>();
         commands.add(new CommandLoader<>(TrackCommand.class));
 		commands.add(new CommandLoader<>(GenreCommand.class));
@@ -40,6 +37,7 @@ public class CommandProcessor {
 		commands.add(new CommandLoader<>(ExitCommand.class));
 		this.hp = new HelpCommand(commands);
         this.scanner = new Scanner(System.in, consoleEncoding);
+        this.parser = new CommandParser();
     }
     
     class CommandLoader<T extends Command> {
@@ -49,18 +47,13 @@ public class CommandProcessor {
             this.commandClass = commandClass;
         }
      
-        @SuppressWarnings("unchecked")
-		T getInstance() {
+        public T getInstance() {
         	T instance = null;
 			try {
-	        	Method method = commandClass.getMethod("getInstance", null);
-				instance = (T) method.invoke(method, null);
-			} catch (IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException | NoSuchMethodException | SecurityException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				instance = commandClass.newInstance();
+			} catch (InstantiationException | IllegalAccessException e) {
+				ms.doEvent(e);
 			}
-        	//T instance = commandClass.newInstance();
 			return instance;
         }
     }
@@ -78,6 +71,7 @@ public class CommandProcessor {
     	try{
 	        boolean result = true; 
 	        do {
+	        	ms.doEvent(INVITATION_TO_PRINT);
 		        boolean isFinded = false;
 	        	String fullCommand = EMPTY_STRING;
 	        	String line;
@@ -85,10 +79,10 @@ public class CommandProcessor {
 	        		line = scanner.nextLine();
 	        		fullCommand += line;
 	        	}while (!line.contains(KEY_COMMAND_END));
-	            if (fullCommand == null || EMPTY_STRING.equals(fullCommand)) {
+	            if (fullCommand == null || KEY_COMMAND_END.equals(fullCommand)) {
 	                continue;
 	            }
-	            parser = new CommandParser(fullCommand);
+	            parser.parse(fullCommand);
 	            if (parser.command == null || EMPTY_STRING.equals(parser.command)) {
 	                continue;
 	            }
@@ -105,14 +99,14 @@ public class CommandProcessor {
 		            	}
 		            }
 		            if(!isFinded)
-		            	ds.doEvent(Command.COMMAND_NOT_FOUND);
+		            	ms.doEvent(Command.COMMAND_NOT_FOUND);
           
 	        } while (result);
     	}catch(RuntimeException e){
-    		ds.doEvent(e);
+    		ms.doEvent(e);
     		log.warn(e.getMessage(), e);
-    	}finally{
-    		scanner.close();
+    		parser.args = null;
+    		execute();
     	}
     }
 }

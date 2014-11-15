@@ -1,11 +1,7 @@
 package commands;
 
-import interfaces.Listener;
-import org.apache.log4j.Logger;
-
 import interfaces.Command;
 import management.ManagementSystem;
-import output.DisplaySystem;
 import output.HelpContainer;
 
 public class GenreCommand implements Command {
@@ -30,37 +26,25 @@ public class GenreCommand implements Command {
 	private static final String SUBCOMMAND_PRINT_TRACKS_FORMAT_DESCRIPTION = "print tracks list of this genre";
 	private static final String SUBCOMMAND_SET_FORMAT = "-s <old genre name> <new genre name> /";
 	private static final String SUBCOMMAND_SET_FORMAT_DESCRIPTION = "set new genre name";
-	private static final Logger log = Logger.getLogger(GenreCommand.class);
 	
 	private static ManagementSystem ms;
-	private Listener ds;
 	
     public GenreCommand() {
-		this.ds = DisplaySystem.getInstance();
-		this.ms = ManagementSystem.getInstance();
-	}
-	
-	private static class SingletonHolder {
-		private static final GenreCommand INSTANCE = new GenreCommand();
-	}
-	
-	public static GenreCommand getInstance() {
-		return SingletonHolder.INSTANCE;
+		GenreCommand.ms = ManagementSystem.getInstance();
 	}
 	
 	@Override
 	public boolean execute(String... args) {
 		 if (args == null) {
-			 ds.doEvent(WARNING_NO_COMMAND_PARAMETER);
+			 throw new IndexOutOfBoundsException(WARNING_NO_COMMAND_PARAMETER);
 		 } else try{
 			 SubCommand subCommand = SubCommand.getName(args[0]);
 			 if((args.length -1) < subCommand.getMethodParametersQuantity())
-				 ds.doEvent(subCommand.getWarning());
+				 throw new IndexOutOfBoundsException(subCommand.getWarning());
 			 else 
 				 subCommand.process(args);		
 		 } catch (IllegalArgumentException e){
-			 ds.doEvent(e);
-			 log.warn(e.getMessage(), e);
+			 throw new IllegalArgumentException(e.getMessage());
 		 }
 		 return true;
 	}
@@ -68,7 +52,7 @@ public class GenreCommand implements Command {
 	@Override
 	public void printHelp() {
 		for(SubCommand sc: SubCommand.values())
-			ds.doEvent(new HelpContainer(sc.getFormat(), sc.getDescription()));
+			ms.doEvent(new HelpContainer(sc.getFormat(), sc.getDescription()));
 	}
 
 	@Override

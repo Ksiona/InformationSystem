@@ -12,7 +12,6 @@ import management.ManagementSystem;
 
 import org.apache.log4j.Logger;
 
-import output.DisplaySystem;
 import commands.CommandProcessor;
 
 public class InformationSystem {
@@ -26,13 +25,12 @@ public class InformationSystem {
 	private static final String FILE_ENCODING_VALUE = "UTF-8";
 	private static final String WARNING_ENCODING = "Unsupported encoding set for console, the application will be closed, please contact support ";
 	private static final String WARNING_UNHANDLE = "A critical error has occurred, the application will be closed, please contact support";
-	private static DisplaySystem ds;
+	private static ManagementSystem ms;
     private static final Logger rlog = Logger.getRootLogger();
     private static final Logger log = Logger.getLogger(InformationSystem.class);
     
     public InformationSystem() {
-    	this.ds = DisplaySystem.getInstance();
-    	ManagementSystem.getInstance();
+    	InformationSystem.ms = ManagementSystem.getInstance();
 		initCommandProcessor();
 	}
 
@@ -41,14 +39,14 @@ public class InformationSystem {
         	System.setProperty(FILE_ENCODING, FILE_ENCODING_VALUE);
         	System.setProperty(CONSOLE_ENCODING, CONSOLE_ENCODING_VALUE);
     		System.setOut(new PrintStream(System.out, true, CONSOLE_ENCODING_VALUE));
-        	ds.DisplayMessage(WELCOME_MESSAGE);
+        	ms.doEvent(WELCOME_MESSAGE);
         	CommandProcessor cp = CommandProcessor.getInstance(CONSOLE_ENCODING_VALUE);
         	cp.execute();
     	} catch (UnsupportedEncodingException ex) {
-    		ds.DisplayMessage(WARNING_ENCODING);
+    		ms.doEvent(WARNING_ENCODING);
     		rlog.fatal(ex.getMessage(), ex);
     	} catch (Throwable e){
-    		ds.DisplayMessage(WARNING_UNHANDLE);
+    		ms.doEvent(WARNING_UNHANDLE);
     		rlog.fatal(e.getMessage(), e);;
     	}
 	}

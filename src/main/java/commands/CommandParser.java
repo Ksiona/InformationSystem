@@ -12,8 +12,8 @@ public class CommandParser {
 	private static final String EMPTY_STRING = "";
     protected String command;
     protected String[] args;
-
-    public CommandParser(String line) {
+    
+    public void parse(String line){
     	List<String> result = new ArrayList<>();
     	Pattern pattern = Pattern.compile(REGEXP_SKIP_SPACES_IN_QUOTS_AND_UNRESOLVED_SYMBOLS);
 		Matcher matcher = pattern.matcher(line);
