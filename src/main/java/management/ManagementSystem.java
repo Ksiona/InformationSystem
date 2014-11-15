@@ -24,6 +24,7 @@ import musicLibrary.Track;
 import org.apache.log4j.Logger;
 
 import output.DisplaySystem;
+import output.ListContainer;
 
 public class ManagementSystem implements Listener {
 	
@@ -41,13 +42,14 @@ public class ManagementSystem implements Listener {
 	private static final String WARNING_WRONG_PARAMETER = "Operation aborted, check the passed parameters, please";
 	private static final String WARNING_CHECK_STORAGE = "Operation aborted, not found the main store, check the folder \"STORAGE\" in the program folder";
 	
-	private static DisplaySystem ds;
+	private static Collection<Listener> listeners;
     private static final Logger log = Logger.getLogger(ManagementSystem.class);
 	private Library musicLibrary;
     private  List<String> genreFilesDuplicates = new ArrayList<>();;
 
 	private ManagementSystem(){
-        ManagementSystem.ds = DisplaySystem.getInstance();
+        ManagementSystem.listeners = new HashSet<>();
+        ManagementSystem.listeners.add(DisplaySystem.getInstance());
         MusicLibrary library = new MusicLibrary(loadGenres(STORAGE));
         library.AddListener(this);
         this.musicLibrary = library;
@@ -85,10 +87,10 @@ public class ManagementSystem implements Listener {
 					}
 				}
 		} catch (NullPointerException e) {
-			ds.DisplayMessage(WARNING_CHECK_STORAGE);
+            notifyListeners(WARNING_CHECK_STORAGE);
 			log.error(e.getMessage(), e);
 		} catch (ClassNotFoundException | IOException e) {
-			ds.DisplayError(e);
+			notifyListeners(e);
 			log.error(e.getMessage(), e);
 		} 
 		return genres;
@@ -128,14 +130,14 @@ public class ManagementSystem implements Listener {
 	}
 
 	public void printAllTracksTitle(){
-    	ds.DisplayList(musicLibrary.getAllRecords());
+    	notifyListeners(musicLibrary.getAllRecords());
     }
 
 	public void getTracksTitles(String genreName){
     	try{
-    		ds.DisplayList(musicLibrary.getRecordsList(genreName).getRecords());
+    		notifyListeners(musicLibrary.getRecordsList(genreName).getRecords());
     	} catch (IllegalArgumentException e){
-    		ds.DisplayError(e);
+    		notifyListeners(e);
     	}
     }
     
@@ -149,22 +151,22 @@ public class ManagementSystem implements Listener {
         	serialize(genreName);
         	serialize(oldGenre);
     	} catch (IllegalArgumentException e){
-    		ds.DisplayError(e);
+    		notifyListeners(e);
     	}
     }
 
     public void printTrackInfo(String trackTitle){
     	try{
     		Record track = musicLibrary.getRecord(trackTitle);
-    		ds.DisplayMessage(track.toString());
+    		notifyListeners(track.toString());
     	} catch (IllegalArgumentException e){
-    		ds.DisplayError(e);
+    		notifyListeners(e);
     	}
     }
 	
 	public void insertTrack(String ... args) {
 		try{
-			ds.DisplayMessage(STATUS_INSERTING);
+			notifyListeners(STATUS_INSERTING);
 			List<String> genreList = new ArrayList<>();
 			for(int i=0;i<args.length; i=i+5){
 				Record newTrack = new Track (args[i], args[i+1], args[i+2], args[i+3], args[i+4]);
@@ -183,7 +185,7 @@ public class ManagementSystem implements Listener {
 	public void setTrack(String trackTitle, String ... args){
 		if(args.length%2 != 1)
 			throw new IllegalArgumentException(WARNING_WRONG_PARAMETER);
-		ds.DisplayMessage(STATUS_SETTING);
+		notifyListeners(STATUS_SETTING);
 		try {
 			Record track = musicLibrary.getRecord(trackTitle);
 			BeanInfo bi = Introspector.getBeanInfo(track.getClass());
@@ -199,19 +201,19 @@ public class ManagementSystem implements Listener {
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new IllegalArgumentException(WARNING_WRONG_PARAMETER);
 		} catch (IntrospectionException | IllegalAccessException | InvocationTargetException e) {
-			ds.DisplayError(e);
+			notifyListeners(e);
 			log.error(e);
 		}
 	}
 	
     public void removeRecord(String trackTitle, String genreName){
     	try{
-    		ds.DisplayMessage(STATUS_REMOVING);
+    		notifyListeners(STATUS_REMOVING);
     		Record currentTrack = musicLibrary.getRecordsList(genreName).getRecord(trackTitle);
     		musicLibrary.removeRecord(genreName, currentTrack);
 			serialize(genreName);
     	} catch (IllegalArgumentException e){
-    		ds.DisplayError(e);
+    		notifyListeners(e);
     	}
     }
 
@@ -222,15 +224,15 @@ public class ManagementSystem implements Listener {
 			serialize(genreName);
 		}
 		else
-			ds.DisplayMessage(WARNING_GENRE_ALREADY_EXIST);
+			notifyListeners(WARNING_GENRE_ALREADY_EXIST);
 	}
     
     public void removeRecordsList(String genreName){
     	try{
     		combineRecordsLists(UNSORTED_RECORDSLIST_NAME, genreName, UNSORTED_RECORDSLIST_NAME);
-			ds.DisplayMessage(STATUS_REMOVE_FILE_SUCCESS + genreName);
+			notifyListeners(STATUS_REMOVE_FILE_SUCCESS + genreName);
 		}catch (IllegalArgumentException e) {
-			ds.DisplayError(e);
+			notifyListeners(e);
 		}
     }
     
@@ -251,7 +253,7 @@ public class ManagementSystem implements Listener {
     		file.deleteOnExit();;
     		log.info(STORAGE + genreNameFrom + FILE_HAS_BEEN_DELETED);
     	}catch (NullPointerException | IllegalArgumentException e){
-    		ds.DisplayError(e);
+    		notifyListeners(e);
 		}
     }
     
@@ -269,11 +271,11 @@ public class ManagementSystem implements Listener {
 
     public void getRecordsListsName(){
     	for (RecordsList genre: musicLibrary.getRecordsLists())
-    		ds.DisplayMessage(genre.getRecordsListName());
+            notifyListeners(genre.getRecordsListName());
     }
     
 	public void setRecordsListName(String oldGenreName, String newGenreName) {
-		ds.DisplayMessage(STATUS_SETTING);
+		notifyListeners(STATUS_SETTING);
 		moveAllRecordsAnotherSet(oldGenreName, newGenreName);
 		serialize(newGenreName);
 	}
@@ -287,16 +289,16 @@ public class ManagementSystem implements Listener {
             Record checked = trackIterator.next();
             if (checked.fitsMask(keyField, mask)) fits.add(checked);
         }
-        ds.DisplayList(fits);
+        notifyListeners(new ListContainer(fits));
     }
     
     private void serialize(String objName){
 		try (ObjectOutputStream objectOutStream = new ObjectOutputStream(new FileOutputStream(new File(STORAGE+objName+FILE_EXTENSION)))){		
 	    	Object obj = musicLibrary.getRecordsList(objName).getRecords();
 			objectOutStream.writeObject(obj);
-			ds.DisplayMessage(STATUS_WRITING_TO_FILE_SUCCESS + objName);
+			notifyListeners(STATUS_WRITING_TO_FILE_SUCCESS + objName);
 		}catch (IOException e) {
-			ds.DisplayError(e);
+			notifyListeners(e);
 			log.warn(e.getMessage(), e);
 		}
 	}
@@ -312,9 +314,12 @@ public class ManagementSystem implements Listener {
 	}
     
 
+
     @Override
     public void doEvent(Object arg) {
-       if (arg.getClass().equals(String.class)) ds.DisplayMessage((String)arg);
-       if (arg instanceof Exception) ds.DisplayError((Exception) arg);
+        notifyListeners(arg);
+    }
+    public void notifyListeners(Object arg) {
+       for(Listener listener: ManagementSystem.listeners) listener.doEvent(arg);
     }
 }

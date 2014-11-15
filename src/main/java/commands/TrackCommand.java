@@ -1,10 +1,12 @@
 package commands;
 
+import interfaces.Listener;
 import org.apache.log4j.Logger;
 
 import interfaces.Command;
 import management.ManagementSystem;
 import output.DisplaySystem;
+import output.HelpContainer;
 
 class TrackCommand implements Command {
 	
@@ -37,7 +39,7 @@ class TrackCommand implements Command {
 	private static final Logger log = Logger.getLogger(TrackCommand.class);
 	
 	private static ManagementSystem ms;
-	private DisplaySystem ds;
+	private Listener ds;
 	
     public TrackCommand() {
 		this.ds = DisplaySystem.getInstance();
@@ -55,17 +57,17 @@ class TrackCommand implements Command {
 	@Override
     public boolean execute(String... args) {
 		if (args == null) 
-			ds.DisplayMessage(WARNING_NO_COMMAND_PARAMETER);
+			ds.doEvent(WARNING_NO_COMMAND_PARAMETER);
 		else try{
 			SubCommand subCommand = SubCommand.getName(args[0]);
 			String[] arguments = new String [args.length-1];
 			System.arraycopy(args, 1, arguments, 0, args.length-1);
 			if((arguments.length) < subCommand.getMethodParametersQuantity())
-				ds.DisplayMessage(subCommand.getWarning());	
+				ds.doEvent(subCommand.getWarning());
 			else 
 				subCommand.process(arguments);		
 		} catch (IllegalArgumentException e){
-			ds.DisplayError(e);
+			ds.doEvent(e);
 			log.warn(e.getMessage(), e);
 		}
         return true;
@@ -74,7 +76,7 @@ class TrackCommand implements Command {
     @Override
     public void printHelp() {
     	for(SubCommand sc: SubCommand.values())
-			ds.DisplayHelp(sc.getFormat(), sc.getDescription());
+			ds.doEvent(new HelpContainer(sc.getFormat(), sc.getDescription()));
     }
 
     @Override

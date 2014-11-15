@@ -1,6 +1,7 @@
 package commands;
 
 import interfaces.Command;
+import interfaces.Listener;
 import management.ManagementSystem;
 
 import org.apache.log4j.Logger;
@@ -14,7 +15,7 @@ class ExitCommand implements Command {
 	private static final String EXIT_MESSAGE = "Finishing command processor... done.";
 	private static final Logger log = Logger.getLogger(ExitCommand.class);
 	private static ManagementSystem ms;
-	private DisplaySystem ds;
+	private Listener ds;
 	
     public ExitCommand() {
 		this.ds = DisplaySystem.getInstance();
@@ -32,14 +33,14 @@ class ExitCommand implements Command {
     @Override
     public boolean execute(String... args) {
     	ms.writeUnsavedChanges();
-    	ds.DisplayMessage(EXIT_MESSAGE);
+    	ds.doEvent(EXIT_MESSAGE);
     	log.info(EXIT);
         return false;
     }
 
     @Override
     public void printHelp() {
-       ds.DisplayMessage(getDescription());
+       ds.doEvent(getDescription());
     }
 
     @Override

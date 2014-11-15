@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import interfaces.Listener;
 import org.apache.log4j.Logger;
 
 import output.DisplaySystem;
@@ -23,7 +24,7 @@ public class CommandProcessor {
 	private static final String KEY_COMMAND_END = "/";
 	private static final Logger log = Logger.getLogger(CommandProcessor.class);
     private List<CommandLoader<?>> commands;
-	private static DisplaySystem ds;
+	private static Listener ds;
     private static String consoleEncoding;
     private Scanner scanner;
     private CommandParser parser;
@@ -78,7 +79,6 @@ public class CommandProcessor {
 	        boolean result = true; 
 	        do {
 		        boolean isFinded = false;
-	        	ds.DisplaySymbols(INVITATION_TO_PRINT);
 	        	String fullCommand = EMPTY_STRING;
 	        	String line;
 	        	do  {
@@ -105,11 +105,11 @@ public class CommandProcessor {
 		            	}
 		            }
 		            if(!isFinded)
-		            	ds.DisplayMessage(Command.COMMAND_NOT_FOUND);
+		            	ds.doEvent(Command.COMMAND_NOT_FOUND);
           
 	        } while (result);
     	}catch(RuntimeException e){
-    		ds.DisplayError(e);
+    		ds.doEvent(e);
     		log.warn(e.getMessage(), e);
     	}finally{
     		scanner.close();

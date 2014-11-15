@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import commands.CommandProcessor.CommandLoader;
+import interfaces.Listener;
 import output.DisplaySystem;
 
 class HelpCommand implements Command {
@@ -18,7 +19,7 @@ class HelpCommand implements Command {
 	private static final String INFO_MESSAGE_AVAILABLE = "Available commands:\n";
 	private static final String EXECUTION_SYMBOL_DESCRIBER = "\r\nAfter each full command, you must enter the symbol \"/\" for command execution";
 	private List<CommandLoader<?>> commands;
-	private DisplaySystem ds;
+	private Listener ds;
 	
 	public HelpCommand(List<CommandLoader<?>> commands) {
 		this.commands = commands;
@@ -28,27 +29,27 @@ class HelpCommand implements Command {
     @Override
     public boolean execute(String... args) {
   	 	if (args == null) {
-			ds.DisplayMessage(INFO_MESSAGE_AVAILABLE + LINE_DELIMITER);
+			ds.doEvent(INFO_MESSAGE_AVAILABLE + LINE_DELIMITER);
 			for (CommandLoader<?> cl : commands) {
 				Command cmd = (Command) cl.getInstance();
-				ds.DisplayMessage(cmd.getName() + COLON + cmd.getDescription());
+				ds.doEvent(cmd.getName() + COLON + cmd.getDescription());
 			}
-			ds.DisplayMessage(LINE_DELIMITER);
-			ds.DisplayMessage(EXECUTION_SYMBOL_DESCRIBER);
+			ds.doEvent(LINE_DELIMITER);
+			ds.doEvent(EXECUTION_SYMBOL_DESCRIBER);
 		}else {
 			boolean isFinded = false;
 			for (CommandLoader<?> cl : commands) {
 				Command cmd = (Command) cl.getInstance();
 					if(cmd.getName().equalsIgnoreCase(args[0])){
-						ds.DisplayMessage(INFO_MESSAGE_HELP + args[0] + COLON + NEW_LINE + LINE_DELIMITER);
+						ds.doEvent(INFO_MESSAGE_HELP + args[0] + COLON + NEW_LINE + LINE_DELIMITER);
 						cmd.printHelp();
-						ds.DisplayMessage(LINE_DELIMITER);
+						ds.doEvent(LINE_DELIMITER);
 						isFinded = true;
 						break;
 					}
 			}
 			if (!isFinded) {
-				ds.DisplayMessage(COMMAND_NOT_FOUND);
+				ds.doEvent(COMMAND_NOT_FOUND);
 			} 
 		}
         return true;
@@ -56,7 +57,7 @@ class HelpCommand implements Command {
 
     @Override
     public void printHelp() {
-    	ds.DisplayMessage(getDescription());
+    	ds.doEvent(getDescription());
     }
 
     @Override
