@@ -8,27 +8,28 @@ class TrackCommand implements Command {
 	
 	private static final String COMMAND_DESCRIPTION = "Defines operations with tracks";
 	private static final String COMMAND_NAME = "TRACK";
-	private static final String WARNING_NO_COMMAND_PARAMETER = "You must specify the parameter. Type \"help track  /\" to view available";
+	private static final String WARNING_NO_COMMAND_PARAMETER = "You must specify the parameter. Type \"help track\" to view available";
 	private static final String WARNING_SUBCOMMAND_INFO = "Enter track title to process";
 	private static final String WARNING_SUBCOMMAND_SET = "Enter track title and parameters with new values to process";
 	private static final String WARNING_SUBCOMMAND_INSERT = "Don't skip parameters, if don't no info - type \"-\" \r\n" +
 	 												"Example: -a \"genre\" \"title\" \"singer\" \"album\" record length";
-	private static final String WARNING_SUBCOMMAND_REMOVE = "Enter track title and genre name to remove";
+	private static final String WARNING_SUBCOMMAND_REMOVE = "Enter track title to remove";
 	private static final String WARNING_SUBCOMMAND_SET_GENRE = "Enter track title and genre name to process";
-	private static final String SUBCOMMAND_INFO_FORMAT = "-i <track title> /";
+	private static final String SUBCOMMAND_INFO_FORMAT = "-i <track title>";
 	private static final String SUBCOMMAND_INFO_FORMAT_DESCRIPTION = "get track info";
-	private static final String SUBCOMMAND_SET_FORMAT = "-s <track title> <parameter> <new value> /";
+	private static final String SUBCOMMAND_SET_FORMAT = "-s <track title> <parameter> <new value>";
 	private static final String SUBCOMMAND_SET_FORMAT_DESCRIPTION = "set track info, you can change several parameters at once, \r\n\n"
 																	+ "parameters names: <title> <singer> <album> <length>, don't enter value is identical to the parameter, it will cause errors, and "
 																	+ "use the key -g to set track genre, please \r\n";
 	private static final String SUBCOMMAND_INSERT_FORMAT = "-a <track parameters> /";
 	private static final String SUBCOMMAND_INSERT_FORMAT_DESCRIPTION = "add track into library, \r\n\n"
-																	+ "enter parameters in sequence: <genre> <track title> <singer> <album> <record length> \r\n";
-	private static final String SUBCOMMAND_REMOVE_FORMAT = "-r <track title> <genre name> /";
-	private static final String SUBCOMMAND_REMOVE_FORMAT_DESCRIPTION = "remove track with title from genre";
-	private static final String SUBCOMMAND_SETGENRE_FORMAT = "-g <track title> <genre name> /";
+																	+ "enter parameters in sequence: <genre> <track title> <singer> <album> <record length> "
+																	+ "you can insert several tracks at once, this command must be terminated by a character \"/\" \r\n";
+	private static final String SUBCOMMAND_REMOVE_FORMAT = "-r <track title>";
+	private static final String SUBCOMMAND_REMOVE_FORMAT_DESCRIPTION = "remove track with title from library";
+	private static final String SUBCOMMAND_SETGENRE_FORMAT = "-g <track title> <genre name>";
 	private static final String SUBCOMMAND_SET_GENRE_FORMAT_DESCRIPTION = "set another genre for track";
-	private static final String SUBCOMMAND_PRINT_FORMAT = "-p /";
+	private static final String SUBCOMMAND_PRINT_FORMAT = "-p";
 	private static final String SUBCOMMAND_PRINT_FORMAT_DESCRIPTION = "print titles of all available tracks";
 	private static final String ARGUMENT_LENGTH_REPLACEMENT = "recordLength";
 	private static final String ARGUMENT_TITLE_REPLACEMENT = "trackTitle";
@@ -229,12 +230,12 @@ class TrackCommand implements Command {
 
 			@Override
 			public int getMethodParametersQuantity() {
-				return 2;
+				return 1;
 			}
 
 			@Override
 			public void process(String... args) {
-				ms.removeRecord(args[0], args[1]);
+				ms.removeRecord(args[0]);
 			}
 		};
 		

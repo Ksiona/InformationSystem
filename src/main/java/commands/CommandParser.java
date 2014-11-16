@@ -8,8 +8,10 @@ import java.util.regex.Pattern;
 public class CommandParser {
 	
 	private static final String REGEXP_SKIP_SPACES_IN_QUOTS_AND_UNRESOLVED_SYMBOLS = "((\\\"[^\"]+\\\")|([\\w-*?\\.])+)";
+	private static final String REGEXP_FOR_SELECTION = "Y|N|S";
 	private static final String SHIELDED_QUOTE = "\"";
 	private static final String EMPTY_STRING = "";
+	protected String[] output;
     protected String command;
     protected String[] args;
     
@@ -22,6 +24,7 @@ public class CommandParser {
 		}
 	
         if (result != null) {
+        	output = result.toArray(new String[0]); 
             command = result.get(0);
             if (result.size() > 1) {
             	result.remove(0);
@@ -29,4 +32,13 @@ public class CommandParser {
             }
         }
     }
+
+	public void parseSelection(String line) {
+		String result = null;
+		Pattern pattern = Pattern.compile(REGEXP_FOR_SELECTION);
+		Matcher matcher = pattern.matcher(line);
+		if( matcher.find())
+			result = matcher.group();
+		command = result;	
+	}
 }

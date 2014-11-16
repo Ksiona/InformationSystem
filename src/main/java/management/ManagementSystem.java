@@ -23,6 +23,7 @@ import musicLibrary.Track;
 
 import org.apache.log4j.Logger;
 
+import commands.SelectionProcessor;
 import output.DisplaySystem;
 import output.ListContainer;
 
@@ -37,15 +38,26 @@ public class ManagementSystem implements Listener {
 	private static final String STATUS_INSERTING = "Inserting track...";
 	private static final String STATUS_WRITING_TO_FILE_SUCCESS = "Successfully updated storage: ";
 	private static final String STATUS_REMOVE_FILE_SUCCESS = "Successfully remove storage: ";
+	private static final String STATUS_USER_ABORTED ="Operation aborted by user";
+    private static final String STATUS_NO_CHANGES = "None of the tracks has not been changed, check the entered parameters";
 	private static final String FILE_HAS_BEEN_DELETED = " file has been deleted";
 	private static final String WARNING_GENRE_ALREADY_EXIST = " genre already exist";
 	private static final String WARNING_WRONG_PARAMETER = "Operation aborted, check the passed parameters, please";
 	private static final String WARNING_CHECK_STORAGE = "Operation aborted, not found the main store, check the folder \"STORAGE\" in the program folder";
+	private static final String REMOVE_QUESTION = "Above are several tracks with the same name, are you want to delete all the tracks? \r\n"
+			+ "\"Y\" - to delete all tracks, \r\n"
+			+ "\"N\" - to abort the operation, \r\n"
+			+ "\"S\" - to select a specific track";
+	private enum Answers{Y,N,S;}
 	
 	private static Collection<Listener> listeners;
     private static final Logger log = Logger.getLogger(ManagementSystem.class);
+
 	private Library musicLibrary;
-    private  List<String> genreFilesDuplicates = new ArrayList<>();;
+    private List<String> genreFilesDuplicates = new ArrayList<>();
+	private Thread selectionThread;
+	private String selection;
+	private SelectionProcessor sp;
 
 	private ManagementSystem(){
         ManagementSystem.listeners = new HashSet<>();
@@ -53,6 +65,7 @@ public class ManagementSystem implements Listener {
         MusicLibrary library = new MusicLibrary(loadGenres(STORAGE));
         library.AddListener(this);
         this.musicLibrary = library;
+        
     }
 
 	private static class SingletonHolder {
@@ -156,12 +169,12 @@ public class ManagementSystem implements Listener {
     }
 
     public void printTrackInfo(String trackTitle){
-    	try{
-    		Record track = musicLibrary.getRecord(trackTitle);
-    		notifyListeners(track.toString());
-    	} catch (IllegalArgumentException e){
-    		notifyListeners(e);
-    	}
+    	List<Record> rList = new ArrayList<>();
+    	for (Record track : musicLibrary.getAllRecords())
+			if (track.getTrackTitle().equalsIgnoreCase(trackTitle)){
+				rList.add(track);
+			}
+    	notifyListeners(rList);
     }
 	
 	public void insertTrack(String ... args) {
@@ -216,8 +229,61 @@ public class ManagementSystem implements Listener {
     		notifyListeners(e);
     	}
     }
+   
+	public void removeRecord(String trackTitle) {
+		List<Record> rList = new ArrayList<>();
+		for (Record track : musicLibrary.getAllRecords())
+			if (track.getTrackTitle().equalsIgnoreCase(trackTitle)){
+				rList.add(track);
+			}
+		if (rList.size()<=1)
+			removeRecord(trackTitle, rList.get(0).getGenre());
+		else{
+			notifyListeners(rList);
+			removeCaseSeveralRecords(trackTitle, rList);
+			try {
+				selectionThread.join();
+			} catch (InterruptedException e) {
+				log.warn(e.getMessage(), e);
+			}
+		}
+	}
+	
+	private void removeCaseSeveralRecords(final String trackTitle, final List<Record> rList){
+		selectionThread = new Thread(new Runnable() {	
+			@Override
+			public void run() {
+				boolean isFinded =false;
+				//I can't move the initialization of this resource in the constructor while MS intermediary for console output, 
+				//because MS - resource for SelectionProcessor
+				sp = new SelectionProcessor();
+				selection = sp.askUserChoice(REMOVE_QUESTION);
+				switch(Answers.valueOf(selection)){
+				case S:
+					String[] args = sp.removeCaseParameters();
+					for (Record track : rList)
+						if (track.getSinger().equalsIgnoreCase(args[0])&& track.getAlbum().equalsIgnoreCase(args[1])){
+							removeRecord(trackTitle, track.getGenre());
+							isFinded =true;
+						}
+					if(!isFinded)
+						notifyListeners(STATUS_NO_CHANGES);
+					break;
+				case Y:
+					for (Record track : rList)
+						removeRecord(trackTitle, track.getGenre());
+					break;
+				case N:
+					notifyListeners(STATUS_USER_ABORTED);
+					break;
+				}
+			}
+		});
+		selectionThread.setDaemon(true);
+		selectionThread.start();
+	}
 
-    public void insertRecordsList(String genreName) {
+	public void insertRecordsList(String genreName) {
 		Collection<Record> newGenreTracks = new HashSet<>();
 		if(!musicLibrary.checkExist(genreName)){
 			musicLibrary.insertRecordsList(genreName, newGenreTracks);
@@ -317,7 +383,7 @@ public class ManagementSystem implements Listener {
 
     @Override
     public void doEvent(Object arg) {
-        notifyListeners(arg);
+    	notifyListeners(arg);
     }
     public void notifyListeners(Object arg) {
        for(Listener listener: ManagementSystem.listeners) listener.doEvent(arg);

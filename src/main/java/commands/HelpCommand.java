@@ -17,7 +17,7 @@ class HelpCommand implements Command {
 	private static final String COLON = ": ";
 	private static final String INFO_MESSAGE_HELP = "Help for command ";
 	private static final String INFO_MESSAGE_AVAILABLE = "Available commands:\n";
-	private static final String EXECUTION_SYMBOL_DESCRIBER = "\r\nAfter each full command, you must enter the symbol \"/\" for command execution";
+	private static final String EXECUTION_SYMBOL_DESCRIBER = "\r\nSome commands must be terminated by a character \"/\" for command execution";
 	private List<CommandLoader<?>> commands;
 	private Listener ms;
 	
@@ -49,7 +49,7 @@ class HelpCommand implements Command {
 					}
 			}
 			if (!isFinded) {
-				ms.doEvent(COMMAND_NOT_FOUND +"here");
+				ms.doEvent(COMMAND_NOT_FOUND);
 			} 
 		}
         return true;

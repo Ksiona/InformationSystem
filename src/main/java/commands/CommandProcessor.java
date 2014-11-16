@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import management.ManagementSystem;
+
 import org.apache.log4j.Logger;
  
 /**
@@ -20,6 +21,7 @@ public class CommandProcessor {
 	private static final String EMPTY_STRING = "";
 	private static final String KEY_COMMAND_END = "/";
 	private static final Logger log = Logger.getLogger(CommandProcessor.class);
+	private static final String MULTILINE_MODE_INPUT_CONDITION = "track -a";
     private List<CommandLoader<?>> commands;
 	private static Listener ms;
     private static String consoleEncoding;
@@ -74,12 +76,16 @@ public class CommandProcessor {
 	        	ms.doEvent(INVITATION_TO_PRINT);
 		        boolean isFinded = false;
 	        	String fullCommand = EMPTY_STRING;
-	        	String line;
-	        	do  {
-	        		line = scanner.nextLine();
-	        		fullCommand += line;
-	        	}while (!line.contains(KEY_COMMAND_END));
-	            if (fullCommand == null || KEY_COMMAND_END.equals(fullCommand)) {
+	        	String line = scanner.nextLine();
+	        	if (line.contains(MULTILINE_MODE_INPUT_CONDITION))
+		        	do  {
+		        		fullCommand += line;
+		        		line = scanner.nextLine();
+		        	}while (!line.contains(KEY_COMMAND_END));
+	        	else
+	        		fullCommand = line;
+	           
+	        	if (fullCommand == null || KEY_COMMAND_END.equals(fullCommand) || EMPTY_STRING.equals(fullCommand)) {
 	                continue;
 	            }
 	            parser.parse(fullCommand);
