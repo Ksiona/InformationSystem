@@ -23,7 +23,7 @@ public class CommandProcessor {
 	private static final Logger log = Logger.getLogger(CommandProcessor.class);
 	private static final String MULTILINE_MODE_INPUT_CONDITION = "track -a";
     private List<CommandLoader<?>> commands;
-	private static Listener ms;
+	private static Listener ds;
     private static String consoleEncoding;
     private Scanner scanner;
     private CommandParser parser;
@@ -31,7 +31,7 @@ public class CommandProcessor {
     
   
     private CommandProcessor() {
-        CommandProcessor.ms = ManagementSystem.getInstance();
+        CommandProcessor.ds = ManagementSystem.getInstance();
         commands = new ArrayList<>();
         commands.add(new CommandLoader<>(TrackCommand.class));
 		commands.add(new CommandLoader<>(GenreCommand.class));
@@ -54,7 +54,7 @@ public class CommandProcessor {
 			try {
 				instance = commandClass.newInstance();
 			} catch (InstantiationException | IllegalAccessException e) {
-				ms.doEvent(e);
+				ds.doEvent(e);
 			}
 			return instance;
         }
@@ -73,7 +73,6 @@ public class CommandProcessor {
     	try{
 	        boolean result = true; 
 	        do {
-	        	ms.doEvent(INVITATION_TO_PRINT);
 		        boolean isFinded = false;
 	        	String fullCommand = EMPTY_STRING;
 	        	String line = scanner.nextLine();
@@ -105,11 +104,11 @@ public class CommandProcessor {
 		            	}
 		            }
 		            if(!isFinded)
-		            	ms.doEvent(Command.COMMAND_NOT_FOUND);
+		            	ds.doEvent(Command.COMMAND_NOT_FOUND);
           
 	        } while (result);
     	}catch(RuntimeException e){
-    		ms.doEvent(e);
+    		ds.doEvent(e);
     		log.warn(e.getMessage(), e);
     		parser.args = null;
     		execute();

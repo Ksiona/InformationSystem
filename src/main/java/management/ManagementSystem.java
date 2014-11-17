@@ -143,12 +143,12 @@ public class ManagementSystem implements Listener {
 	}
 
 	public void printAllTracksTitle(){
-    	notifyListeners(musicLibrary.getAllRecords());
+    	notifyListeners(new ListContainer(musicLibrary.getAllRecords()));
     }
 
 	public void getTracksTitles(String genreName){
     	try{
-    		notifyListeners(musicLibrary.getRecordsList(genreName).getRecords());
+    		notifyListeners(new ListContainer(musicLibrary.getRecordsList(genreName).getRecords()));
     	} catch (IllegalArgumentException e){
     		notifyListeners(e);
     	}
