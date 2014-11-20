@@ -1,5 +1,5 @@
 /**
  *
- *part of MVC is responsible for view
+ * Вывод в схеме МВК
  */
 package output;

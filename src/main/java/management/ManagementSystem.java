@@ -27,6 +27,9 @@ import commands.SelectionProcessor;
 import output.DisplaySystem;
 import output.ListContainer;
 
+/**
+ * Управлет изменениями в модели и отправляет информацию на выход
+ */
 public class ManagementSystem implements Listener {
 	
 	private static final String STORAGE = "Storage/";
@@ -71,11 +74,20 @@ public class ManagementSystem implements Listener {
 	private static class SingletonHolder {
 		private static final ManagementSystem INSTANCE = new ManagementSystem();
 	}
-	
+
+    /**
+     * Возвращет ссылку на единственный экземпляр класса
+     * @return ссылку на единственный экземпляр класса
+     */
 	public static ManagementSystem getInstance() {
 		return SingletonHolder.INSTANCE;
 	}
-	
+
+    /**
+     * Загружает все файлы из хранилища
+     * @param storage адрес хранилища
+     * @return Список всех списков жанра
+     */
     public List<RecordsList> loadGenres(String storage){
     	List<RecordsList> genres = new ArrayList<>();
     	Collection<Record> tracks = new HashSet<>();
@@ -108,7 +120,10 @@ public class ManagementSystem implements Listener {
 		} 
 		return genres;
     }
-    
+
+    /**
+     * Записывает все несохраненные изменения в файловую систему
+     */
 	public void writeUnsavedChanges() {
 		if(!genreFilesDuplicates.isEmpty()){
 			for(String genreName:genreFilesDuplicates)
@@ -142,18 +157,35 @@ public class ManagementSystem implements Listener {
 		}
 	}
 
+    /**
+     * Отправляет на вывод список всех записей в бибилотеке
+     */
 	public void printAllTracksTitle(){
     	notifyListeners(musicLibrary.getAllRecords());
     }
 
+    /**
+     * Отправляет на вывод список всех записей конкретного жанра,
+     * если такого жанра нет - отправляет на вывод
+     * сообщение об ошибке
+     * @param genreName название нужного жанра
+     */
 	public void getTracksTitles(String genreName){
     	try{
-    		notifyListeners(musicLibrary.getRecordsList(genreName).getRecords());
+    		notifyListeners(new ListContainer(musicLibrary.getRecordsList(genreName).getRecords()));
     	} catch (IllegalArgumentException e){
     		notifyListeners(e);
     	}
     }
-    
+
+    /**
+     * Перемещает трек с определенным названием в новый жанр,
+     * создавая новый список, если это необходимо.
+     * В случае если трека с данным названием не существует,
+     * отправляет на вывод сообщение об ошибке
+     * @param trackTitle название трека для переноски
+     * @param genreName название жанра, куда следует переместить трек
+     */
     public void moveRecordAnotherSet(String trackTitle, String genreName){
     	try{
     		Record currentTrack = musicLibrary.getRecord(trackTitle);
@@ -168,15 +200,26 @@ public class ManagementSystem implements Listener {
     	}
     }
 
+    /**
+     * Отправляет на вывод информацию о треках с определенным названием, если таковых нет - отправляет сообщение об этом
+     * @param trackTitle название трека для вывода
+     */
     public void printTrackInfo(String trackTitle){
     	List<Record> rList = new ArrayList<>();
     	for (Record track : musicLibrary.getAllRecords())
 			if (track.getTrackTitle().equalsIgnoreCase(trackTitle)){
 				rList.add(track);
 			}
-    	notifyListeners(rList);
+    	if (rList.size() != 0)notifyListeners(new ListContainer(rList));
+        else notifyListeners("Tracks named "+trackTitle+" were not found");
     }
-	
+
+    /**
+     * Добавляет новый трек в соответствующий ему список жанра,
+     * создавая таковой при необходимости.
+     * @param args массив параметров трека в последовательности <br>
+     *             { жанр, название, исполнитель, альбом, длинна трека }
+     */
 	public void insertTrack(String ... args) {
 		try{
 			notifyListeners(STATUS_INSERTING);
@@ -194,7 +237,13 @@ public class ManagementSystem implements Listener {
 			throw new IllegalArgumentException(WARNING_WRONG_PARAMETER);
 		}
 	}
-	
+
+    /**
+     * Изменяет трек под соответствующим названием
+     * @param trackTitle название трека для изменения
+     * @param args массив параметров трека в последовательности <br>
+     *  {название, исполнитель, альбом, длинна трека}
+     */
 	public void setTrack(String trackTitle, String ... args){
 		if(args.length%2 != 1)
 			throw new IllegalArgumentException(WARNING_WRONG_PARAMETER);
@@ -218,7 +267,13 @@ public class ManagementSystem implements Listener {
 			log.error(e);
 		}
 	}
-	
+
+    /**
+     * Удаляет трек под данным названием из данного списка жанра
+     * Если списка или трека не существует, отсылает на вывод соответствующую ошибку
+     * @param trackTitle название трека для удаления
+     * @param genreName название жанра, к которому приндалежит этот трек
+     */
     public void removeRecord(String trackTitle, String genreName){
     	try{
     		notifyListeners(STATUS_REMOVING);
@@ -229,7 +284,12 @@ public class ManagementSystem implements Listener {
     		notifyListeners(e);
     	}
     }
-   
+
+    /**
+     * Удаляет треки с данным названием, в случае, если их несколько -
+     * отправляет на вывод диалог с предупреждением и поступает соответственно ответу
+     * @param trackTitle название трека для удаления
+     */
 	public void removeRecord(String trackTitle) {
 		List<Record> rList = new ArrayList<>();
 		for (Record track : musicLibrary.getAllRecords())
@@ -283,6 +343,11 @@ public class ManagementSystem implements Listener {
 		selectionThread.start();
 	}
 
+    /**
+     * Добавляет в библиотеку список нового жанра, если таковой
+     * жанр уже существует - отправляет на вывод соответсвенное сообщение
+     * @param genreName название нового жанра
+     */
 	public void insertRecordsList(String genreName) {
 		Collection<Record> newGenreTracks = new HashSet<>();
 		if(!musicLibrary.checkExist(genreName)){
@@ -292,7 +357,11 @@ public class ManagementSystem implements Listener {
 		else
 			notifyListeners(WARNING_GENRE_ALREADY_EXIST);
 	}
-    
+
+    /**
+     * Удаляет жанр и перемещает все его треки в Unsorted
+     * @param genreName название жанра на удаление
+     */
     public void removeRecordsList(String genreName){
     	try{
     		combineRecordsLists(UNSORTED_RECORDSLIST_NAME, genreName, UNSORTED_RECORDSLIST_NAME);
@@ -301,7 +370,13 @@ public class ManagementSystem implements Listener {
 			notifyListeners(e);
 		}
     }
-    
+
+    /**
+     * Перемещает все треки из одного списка жанра в другой, создавая последний при необходимости.
+     * В случае, если отсутствует исходный список жанра, отправляет на вывод сообщение об этом
+     * @param genreNameFrom название исходного жанра
+     * @param genreNameTo название жанра, куда нужно переместить треки
+     */
     public void moveAllRecordsAnotherSet(String genreNameFrom, String genreNameTo){
     	RecordsList genreTo = null;
     	try{
@@ -322,7 +397,13 @@ public class ManagementSystem implements Listener {
     		notifyListeners(e);
 		}
     }
-    
+
+    /**
+     * Объединяет два списка по жанру в один новый
+     * @param genreName1 название первого жанра
+     * @param genreName2 название второго жанра
+     * @param newGenreName название результирующего жанра
+     */
     public void combineRecordsLists(String genreName1, String genreName2, String newGenreName) {
     	if(newGenreName.equalsIgnoreCase(genreName1))
     		moveAllRecordsAnotherSet(genreName2, genreName1);
@@ -335,17 +416,32 @@ public class ManagementSystem implements Listener {
 		serialize(newGenreName);
 	}
 
+    /**
+     * Отправляет на вывод список всех жанров библиотеки
+     */
     public void getRecordsListsName(){
     	for (RecordsList genre: musicLibrary.getRecordsLists())
             notifyListeners(genre.getRecordsListName());
     }
-    
+
+    /**
+     * Изменяет название жанра
+     * @param oldGenreName старое название
+     * @param newGenreName новое название
+     */
 	public void setRecordsListName(String oldGenreName, String newGenreName) {
 		notifyListeners(STATUS_SETTING);
 		moveAllRecordsAnotherSet(oldGenreName, newGenreName);
 		serialize(newGenreName);
 	}
-    
+
+    /**
+     * Отправляет на вывод список всех треков, подходящих под маску поиска.
+     * @param keyField Название ключевого поля (Albium/Title/Genre/Singer/Length).
+     * @param mask Маска поиска - последовательность символов, которая должна встречаться в лючевом поле где<br>
+     *  "*" - ни одного или более любых символов. <br>
+     *  "?" - один любой символ.
+     */
     public void searchItems(String keyField, String mask)
     {
         Collection<Record> fits = new ArrayList<Record>();
@@ -385,6 +481,11 @@ public class ManagementSystem implements Listener {
     public void doEvent(Object arg) {
     	notifyListeners(arg);
     }
+
+    /**
+     * Оповещает о событии всех слушателей, перправляя им сопутствующую информацию
+     * @param arg информация для передачи
+     */
     public void notifyListeners(Object arg) {
        for(Listener listener: ManagementSystem.listeners) listener.doEvent(arg);
     }

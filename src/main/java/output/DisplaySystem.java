@@ -3,6 +3,7 @@ package output;
 import interfaces.Listener;
 import interfaces.Record;
 
+import java.io.PrintStream;
 import java.util.Iterator;
 
 /**
@@ -13,8 +14,18 @@ public class DisplaySystem implements Listener {
 	private static final String ERROR = "Error: ";
 	private static final String LIST_FORMATTER = "%-30s %-10s %-35s %-20s %-25s%n";
 	private static final String HELP_FORMATTER = "%-50s %-70s%n";
+    private static final PrintStream displayStream = new PrintStream(System.out);
     private DisplaySystem(){}
 
+    /**
+     * Выводит объект на экран. Поддерживаемые объекты:<ul>
+     *     <li>String - выводит сообщение
+     *     <li>Exception - выводит сообщение об ошибке, используя Exception.getMessage() как его основу
+     *     <li>HelpContainer - выводит справку о команде
+     *     <li>ListContainer - выводит список записей
+     *     </ul>
+     * @param arg объект для вывода
+     */
     @Override
     public void doEvent(Object arg){
         if (arg instanceof ListContainer){
@@ -35,22 +46,25 @@ public class DisplaySystem implements Listener {
     private static class SingletonHolder {
 		private static final DisplaySystem INSTANCE = new DisplaySystem();
 	}
-	
+
+    /**
+     * Возвращет ссылку на единственный экземпляр класса
+     * @return сслыку на единственный экземпляр
+     */
 	public static DisplaySystem getInstance() {
 		return SingletonHolder.INSTANCE;
 	}
 
     private void DisplayMessage(String message)
     {
-        System.out.println(message);
+        displayStream.println(message);
     }
-    private void DisplayError(Exception e)
-    {
-        System.out.println(ERROR + e.getMessage());
+    private void DisplayError(Exception e){
+        displayStream.println(ERROR + e.getMessage());
        // e.printStackTrace();
     }
     private void DisplayList(ListContainer list) {
-              System.out.printf(LIST_FORMATTER,
+              displayStream.printf(LIST_FORMATTER,
             		  Field.Title.name(),
                 DELIMITER+Field.Length.name(),
                 DELIMITER+Field.Album.name(),
@@ -59,7 +73,7 @@ public class DisplaySystem implements Listener {
         Iterator<Record> iterator = list.getCollection().iterator();
         while (iterator.hasNext()) {
             Record out = iterator.next();
-            System.out.printf(LIST_FORMATTER,
+            displayStream.printf(LIST_FORMATTER,
                     out.getTrackTitle(),
                     DELIMITER+out.getRecordLength(),
                     DELIMITER+out.getAlbum(),
@@ -67,9 +81,9 @@ public class DisplaySystem implements Listener {
                     DELIMITER+out.getSinger());
         }
     }
-		public void DisplayHelp(String name, String description) {
-			System.out.printf(HELP_FORMATTER, name, description);
-		}
-		
+    private void DisplayHelp(String name, String description) {
+        displayStream.printf(HELP_FORMATTER, name, description);
+	}
+
 		private enum Field{Title,Singer,Album,Length,Genre}
 }
