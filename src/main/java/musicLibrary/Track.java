@@ -5,15 +5,42 @@ import interfaces.Record;
 import java.io.Serializable;
 import java.util.regex.Pattern;
 
+/**
+ * Предстваляет собой запись о музыкальном треке
+ */
 public class Track implements Serializable, Record {
 
 	private static final long serialVersionUID = 1L;
+    /**
+     * Название трека
+     */
 	private String trackTitle;
+    /**
+     * Исполнитель трека
+     */
 	private String singer;
+    /**
+     * Название альбома
+     */
 	private String album;
+    /**
+     * Длинна трека
+     */
 	private String recordLength;
+    /**
+     * Название жанра
+     */
 	private String genre;
 
+    /**
+     * Создает новый экземпляр трека
+     * @param genre жанр
+     * @param trackTitle название трека
+     * @param singer исполнитель
+     * @param album альбом
+     * @param recordLength длинна трека
+     * @exception java.lang.IllegalArgumentException если trackTitle равен null
+     */
 	public Track(String genre, String trackTitle, String singer, String album, String recordLength) {
 		this.setGenre(genre);
 		this.setTrackTitle(trackTitle);
@@ -21,10 +48,11 @@ public class Track implements Serializable, Record {
 		this.setAlbum(album);
 		this.setRecordLength(recordLength);
 	}
-	
+
 	public String getGenre() {
 		return genre;
 	}
+
 
 	public void setGenre(String genre) {
 		if ((genre == null)||(genre.equals("-")))
@@ -32,10 +60,12 @@ public class Track implements Serializable, Record {
 		else
 			this.genre = genre;
 	}
-	
+
+
 	public String getTrackTitle() {
 		return trackTitle;
 	}
+
 
 	public void setTrackTitle(String trackTitle) {
 		if (trackTitle == null)
@@ -43,9 +73,11 @@ public class Track implements Serializable, Record {
 		this.trackTitle = trackTitle;
 	}
 
+
 	public String getSinger() {
 		return singer;
 	}
+
 
 	public void setSinger(String singer) {
 		if ((singer == null)||(singer.equals("-")))
@@ -54,9 +86,11 @@ public class Track implements Serializable, Record {
 			this.singer = singer;
 	}
 
+
 	public String getAlbum() {
 		return album;
 	}
+
 
 	public void setAlbum(String album) {
 		if ((album == null)||(album.equals("-")))
@@ -65,9 +99,11 @@ public class Track implements Serializable, Record {
 			this.album = album;
 	}
 
+
 	public String getRecordLength() {
 		return recordLength;
 	}
+
 
 	public void setRecordLength(String recordLength) {
 		if ((recordLength == null)||(recordLength.equals("-")))
@@ -75,7 +111,7 @@ public class Track implements Serializable, Record {
 		else
 			this.recordLength = recordLength;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -109,7 +145,7 @@ public class Track implements Serializable, Record {
     @Override
     public boolean fitsMask(String keyField, String mask) {
         String checked = null;
-        switch(keyField.charAt(1)){
+        switch(keyField.charAt(0)){
             case 'a':
                 checked = this.getAlbum();
                 break;

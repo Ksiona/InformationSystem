@@ -10,11 +10,20 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+/**
+ * <p>Представляет собой модель музыкальной библиотеки, состоящий из нескольких списков треков, каталогизированных по принципу один жанр - один список.</p>
+ * <p>Имеет список объектов-слушателей, которым отсылает сообщения об успешном совершении изменений.</p>
+ */
 public class MusicLibrary implements Library{
 	private static final String WARNING_NO_CORRECT_VALUE = " - wrong value, or you forgot to use quotation marks";
 	private static final Object STATUS_SUCCESSFUL = "Operation successful";
 	private List<RecordsList> genres;
     private Collection<Listener> listeners;
+
+    /**
+     * Создает новую модель библиотеки
+     * @param genres список треков по жанрам
+     */
 	public MusicLibrary(List<RecordsList> genres) {
 		this.genres = genres;
         this.listeners = new ArrayList<Listener>();
@@ -24,11 +33,19 @@ public class MusicLibrary implements Library{
 		return genres;
     }
 
+    /**
+     * Добавляет объект-слушатель в список
+     * @param listener объект-слушатель
+     */
     public void AddListener(Listener listener)
     {
         this.listeners.add(listener);
     }
 
+    /**
+     * Уведомляет каждого слушателя о неком событии
+     * @param arg объект, передаваемы слушателю
+     */
     private void notifyListeners(Object arg)
     {
         for(Listener listener: listeners)
@@ -73,7 +90,11 @@ public class MusicLibrary implements Library{
     		throw new IllegalArgumentException(trackTitle + WARNING_NO_CORRECT_VALUE);
     	return track;
     }
-    
+
+    /**
+     * Изменяет все параметры(за исключением названия) записи с данным названием(если таковая имеется) на параметры новой.<br>
+     * Уведомляет слушателей об успешном заверщении операции
+     */
 	@Override
 	public void setRecord(String trackTitle, Record newTrack){
 		Record track = getRecord(trackTitle);
@@ -81,7 +102,11 @@ public class MusicLibrary implements Library{
 		genre.setRecord(trackTitle, newTrack);
         this.notifyListeners(STATUS_SUCCESSFUL);
 	}
-	
+
+    /**
+     * Добавляет новую запись в соответствующий ей список, если такого не существует - создает его.<br>
+     * Уведомляет слушателей об успешном заверщении операции/
+     */
 	@Override
 	public void insertRecord(Record newTrack){
 		boolean added = false;
@@ -89,7 +114,6 @@ public class MusicLibrary implements Library{
 			if(genre.getRecordsListName().equalsIgnoreCase(newTrack.getGenre())){
 				genre.insertRecord(newTrack);
 				added = true;
-
 				break;
 			}
 		if(!added){
@@ -100,6 +124,10 @@ public class MusicLibrary implements Library{
         this.notifyListeners(STATUS_SUCCESSFUL);
 	}
 
+    /**
+     * Удаляет конкретную запись из конкретного списка
+     * Уведомляет слушателей об успешном завершении
+     */
 	@Override
 	public void removeRecord(String genreName, Record currentTrack) {
 		getRecordsList(genreName).removeRecord(currentTrack);

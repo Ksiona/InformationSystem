@@ -1,80 +1,102 @@
 package commands;
 
-import org.apache.log4j.Logger;
+import java.util.ArrayList;
+import java.util.List;
 
 import interfaces.Command;
 import management.ManagementSystem;
-import output.DisplaySystem;
+import output.HelpContainer;
 
 class TrackCommand implements Command {
 	
 	private static final String COMMAND_DESCRIPTION = "Defines operations with tracks";
 	private static final String COMMAND_NAME = "TRACK";
-	private static final String WARNING_NO_COMMAND_PARAMETER = "You must specify the parameter. Type \"help track  /\" to view available";
 	private static final String WARNING_SUBCOMMAND_INFO = "Enter track title to process";
 	private static final String WARNING_SUBCOMMAND_SET = "Enter track title and parameters with new values to process";
 	private static final String WARNING_SUBCOMMAND_INSERT = "Don't skip parameters, if don't no info - type \"-\" \r\n" +
 	 												"Example: -a \"genre\" \"title\" \"singer\" \"album\" record length";
-	private static final String WARNING_SUBCOMMAND_REMOVE = "Enter track title and genre name to remove";
+	private static final String WARNING_SUBCOMMAND_REMOVE = "Enter track title to remove";
 	private static final String WARNING_SUBCOMMAND_SET_GENRE = "Enter track title and genre name to process";
-	private static final String SUBCOMMAND_INFO_FORMAT = "-i <track title> /";
+	private static final String SUBCOMMAND_INFO_FORMAT = "-i <track title>";
 	private static final String SUBCOMMAND_INFO_FORMAT_DESCRIPTION = "get track info";
-	private static final String SUBCOMMAND_SET_FORMAT = "-s <track title> <parameter> <new value> /";
+	private static final String SUBCOMMAND_SET_FORMAT = "-s <track title> <parameter> <new value>";
 	private static final String SUBCOMMAND_SET_FORMAT_DESCRIPTION = "set track info, you can change several parameters at once, \r\n\n"
 																	+ "parameters names: <title> <singer> <album> <length>, don't enter value is identical to the parameter, it will cause errors, and "
 																	+ "use the key -g to set track genre, please \r\n";
 	private static final String SUBCOMMAND_INSERT_FORMAT = "-a <track parameters> /";
 	private static final String SUBCOMMAND_INSERT_FORMAT_DESCRIPTION = "add track into library, \r\n\n"
-																	+ "enter parameters in sequence: <genre> <track title> <singer> <album> <record length> \r\n";
-	private static final String SUBCOMMAND_REMOVE_FORMAT = "-r <track title> <genre name> /";
-	private static final String SUBCOMMAND_REMOVE_FORMAT_DESCRIPTION = "remove track with title from genre";
-	private static final String SUBCOMMAND_SETGENRE_FORMAT = "-g <track title> <genre name> /";
+																	+ "enter parameters in sequence: <genre> <track title> <singer> <album> <record length> "
+																	+ "you can insert several tracks at once, this command must be terminated by a character \"/\" \r\n";
+	private static final String SUBCOMMAND_REMOVE_FORMAT = "-r <track title>";
+	private static final String SUBCOMMAND_REMOVE_FORMAT_DESCRIPTION = "remove track with title from library";
+	private static final String SUBCOMMAND_SETGENRE_FORMAT = "-g <track title> <genre name>";
 	private static final String SUBCOMMAND_SET_GENRE_FORMAT_DESCRIPTION = "set another genre for track";
-	private static final String SUBCOMMAND_PRINT_FORMAT = "-p /";
+	private static final String SUBCOMMAND_PRINT_FORMAT = "-p ";
 	private static final String SUBCOMMAND_PRINT_FORMAT_DESCRIPTION = "print titles of all available tracks";
 	private static final String ARGUMENT_LENGTH_REPLACEMENT = "recordLength";
 	private static final String ARGUMENT_TITLE_REPLACEMENT = "trackTitle";
-	private static final Logger log = Logger.getLogger(TrackCommand.class);
 	
 	private static ManagementSystem ms;
-	private DisplaySystem ds;
+	private List<SubCommand> subCommands;
+	private SubCommand subCommand;
 	
     public TrackCommand() {
-		this.ds = DisplaySystem.getInstance();
-		this.ms = ManagementSystem.getInstance();
+		TrackCommand.ms = ManagementSystem.getInstance();
+		subCommands = new ArrayList<>();
+		subCommands.add(new SubCommand(SUBCOMMAND_REMOVE_FORMAT, SUBCOMMAND_REMOVE_FORMAT_DESCRIPTION, WARNING_SUBCOMMAND_REMOVE, 1));
+		subCommands.add(new SubCommand(SUBCOMMAND_INSERT_FORMAT, SUBCOMMAND_INSERT_FORMAT_DESCRIPTION, WARNING_SUBCOMMAND_INSERT, 5));
+		subCommands.add(new SubCommand(SUBCOMMAND_INFO_FORMAT, SUBCOMMAND_INFO_FORMAT_DESCRIPTION, WARNING_SUBCOMMAND_INFO, 1));
+		subCommands.add(new SubCommand(SUBCOMMAND_PRINT_FORMAT, SUBCOMMAND_PRINT_FORMAT_DESCRIPTION, null, 0));
+		subCommands.add(new SubCommand(SUBCOMMAND_SETGENRE_FORMAT, SUBCOMMAND_SET_GENRE_FORMAT_DESCRIPTION, WARNING_SUBCOMMAND_SET_GENRE, 2));
+		subCommands.add(new SubCommand(SUBCOMMAND_SET_FORMAT, SUBCOMMAND_SET_FORMAT_DESCRIPTION, WARNING_SUBCOMMAND_SET, 3));
+		subCommand = new SubCommand();
 	}
     
-	private static class SingletonHolder {
-		private static final TrackCommand INSTANCE = new TrackCommand();
+	private enum CommandKeys{
+		r,a,i,p,g,s;
 	}
 	
-	public static TrackCommand getInstance() {
-		return SingletonHolder.INSTANCE;
-	}
-    
 	@Override
-    public boolean execute(String... args) {
-		if (args == null) 
-			ds.DisplayMessage(WARNING_NO_COMMAND_PARAMETER);
-		else try{
-			SubCommand subCommand = SubCommand.getName(args[0]);
-			String[] arguments = new String [args.length-1];
-			System.arraycopy(args, 1, arguments, 0, args.length-1);
-			if((arguments.length) < subCommand.getMethodParametersQuantity())
-				ds.DisplayMessage(subCommand.getWarning());	
-			else 
-				subCommand.process(arguments);		
-		} catch (IllegalArgumentException e){
-			ds.DisplayError(e);
-			log.warn(e.getMessage(), e);
-		}
-        return true;
-    }
+	public boolean execute(String... args) {
+		try{
+			subCommand.getSubCommand(args, subCommands);
+			String[] arguments = subCommand.getArguments();
+			switch(CommandKeys.valueOf(subCommand.getKey())){
+			case r:
+				ms.removeRecord(arguments[0]);
+				break;
+			case a:
+				ms.insertTrack(arguments);
+				break;
+			case i:
+				ms.printTrackInfo(arguments[0]);
+				break;
+			case p:
+				ms.printAllTracksTitle();
+				break;
+			case g:
+				ms.moveRecordAnotherSet(arguments[0], arguments[1]);
+				break;
+			case s:
+				for(int i=0;i<args.length;i++){
+					if (arguments[i].equalsIgnoreCase(Field.LENGTH.name()))
+						arguments[i] = Field.LENGTH.replacement;
+					if (arguments[i].equalsIgnoreCase(Field.TITLE.name()))
+						arguments[i] = Field.TITLE.replacement;
+				}
+				ms.setTrack(arguments[0], arguments);
+				break;
+			}
+			} catch (IllegalArgumentException e){
+			throw new IllegalArgumentException(e.getMessage());
+			}
+			return true;
+	}
 
     @Override
     public void printHelp() {
-    	for(SubCommand sc: SubCommand.values())
-			ds.DisplayHelp(sc.getFormat(), sc.getDescription());
+    	for(SubCommand sc: subCommands)
+			ms.doEvent(new HelpContainer(sc.getFormat(), sc.getFormatDescription()));
     }
 
     @Override
@@ -86,193 +108,6 @@ class TrackCommand implements Command {
     public String getDescription() {
         return COMMAND_DESCRIPTION;
     }
-    
-	private enum SubCommand{
-		INFO(SUBCOMMAND_INFO_FORMAT.substring(0, 2)){
-			@Override
-			public String getDescription(){
-				return SUBCOMMAND_INFO_FORMAT_DESCRIPTION;
-			}
-
-			@Override
-			public String getFormat() {
-				return SUBCOMMAND_INFO_FORMAT;
-			}
-
-			@Override
-			public String getWarning() {
-				return WARNING_SUBCOMMAND_INFO;
-			}
-
-			@Override
-			public int getMethodParametersQuantity() {
-				return 1;
-			}
-
-			@Override
-			public void process(String... args) {
-				ms.printTrackInfo(args[0]); 
-			}
-		}, 
-		SET(SUBCOMMAND_SET_FORMAT.substring(0, 2)){
-			@Override
-			public String getDescription(){
-				return SUBCOMMAND_SET_FORMAT_DESCRIPTION;
-			}
-
-			@Override
-			public String getFormat() {
-				return  SUBCOMMAND_SET_FORMAT;
-			}
-
-			@Override
-			public String getWarning() {
-				return WARNING_SUBCOMMAND_SET;
-			}
-
-			@Override
-			public int getMethodParametersQuantity() {
-				return 1;
-			}
-
-			@Override
-			public void process(String... args) {
-				for(int i=0;i<args.length;i++){
-					if (args[i].equalsIgnoreCase(Field.LENGTH.name()))
-						args[i] = Field.LENGTH.replacement;
-					if (args[i].equalsIgnoreCase(Field.TITLE.name()))
-						args[i] = Field.TITLE.replacement;
-				}
-				ms.setTrack(args[0], args);
-			}
-		}, 
-		INSERT(SUBCOMMAND_INSERT_FORMAT.substring(0, 2)){
-			@Override
-			public String getDescription(){
-				return SUBCOMMAND_INSERT_FORMAT_DESCRIPTION;
-			}
-
-			@Override
-			public String getFormat() {
-				return SUBCOMMAND_INSERT_FORMAT;
-			}
-
-			@Override
-			public String getWarning() {
-				return WARNING_SUBCOMMAND_INSERT;
-			}
-
-			@Override
-			public int getMethodParametersQuantity() {
-				return 5;
-			}
-
-			@Override
-			public void process(String... args) {
-				ms.insertTrack(args);
-			}
-		},
-		GENRE(SUBCOMMAND_SETGENRE_FORMAT.substring(0, 2)){
-			@Override
-			public String getDescription(){
-				return SUBCOMMAND_SET_GENRE_FORMAT_DESCRIPTION;
-			}
-
-			@Override
-			public String getFormat() {
-				return SUBCOMMAND_SETGENRE_FORMAT;
-			}
-
-			@Override
-			public String getWarning() {
-				return WARNING_SUBCOMMAND_SET_GENRE;
-			}
-
-			@Override
-			public int getMethodParametersQuantity() {
-				return 2;
-			}
-
-			@Override
-			public void process(String... args) {
-				ms.moveRecordAnotherSet(args[0], args[1]);
-			}
-		}, 
-		PRINT(SUBCOMMAND_PRINT_FORMAT.substring(0, 2)){
-			@Override
-			public String getDescription(){
-				return SUBCOMMAND_PRINT_FORMAT_DESCRIPTION;
-			}
-
-			@Override
-			public String getFormat() {
-				return SUBCOMMAND_PRINT_FORMAT;
-			}
-
-			@Override
-			public String getWarning() {
-				return COMMAND_NOT_FOUND;
-			}
-
-			@Override
-			public int getMethodParametersQuantity() {
-				return 0;
-			}
-
-			@Override
-			public void process(String... args) {
-				ms.printAllTracksTitle();	
-			}
-			
-		},
-		REMOVE(SUBCOMMAND_REMOVE_FORMAT.substring(0, 2)){
-			@Override
-			public String getDescription(){
-				return SUBCOMMAND_REMOVE_FORMAT_DESCRIPTION;
-			}
-
-			@Override
-			public String getFormat() {
-				return SUBCOMMAND_REMOVE_FORMAT;
-			}
-
-			@Override
-			public String getWarning() {
-				return WARNING_SUBCOMMAND_REMOVE;
-			}
-
-			@Override
-			public int getMethodParametersQuantity() {
-				return 2;
-			}
-
-			@Override
-			public void process(String... args) {
-				ms.removeRecord(args[0], args[1]);
-			}
-		};
-		
-		private final String key;
-	    SubCommand(String key) {
-	        this.key = key;
-	    }
-		public abstract String getFormat();
-		public abstract String getDescription();
-		public abstract String getWarning();
-		public abstract int getMethodParametersQuantity();
-		public abstract void process(String...args);
-		
-		public static SubCommand getName(String key) {
-	        for (SubCommand sCom: SubCommand.values()) 
-	            if (sCom.getKey().equals(key)) 
-	                return sCom;
-	        throw new IllegalArgumentException(COMMAND_NOT_FOUND);
-	    }
-		
-		public  String getKey(){
-			return this.key;	
-		}
-	}
 	
 	private enum Field{
 		LENGTH(ARGUMENT_LENGTH_REPLACEMENT),

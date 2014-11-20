@@ -6,17 +6,29 @@ import interfaces.RecordsList;
 import java.io.Serializable;
 import java.util.Collection;
 
+/**
+ * Представляет собой список записей одного и того же жанра жанра в музыкальной бибилиотеке
+ */
 public class Genre implements Serializable, RecordsList{
 
 	private static final long serialVersionUID = 1L;
     private Collection<Record> tracks;
 	private String genreName;
-	
+
+    /**
+     * Содает новый список по жанру
+     * @param genreName название жанра
+     * @param tracks коллекция треков
+     */
 	public Genre(String genreName, Collection<Record> tracks) {
 		this.tracks = tracks;
 		this.genreName = genreName;
 	}
-	
+
+    /**
+     * Создает новый список по жанру
+     * @param genreName название жанра
+     */
 	public Genre(String genreName) {
 		this.genreName = genreName;
 	}
