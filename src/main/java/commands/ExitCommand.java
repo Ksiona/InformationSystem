@@ -1,10 +1,10 @@
 package commands;
 
-import interfaces.Command;
 import management.ManagementSystem;
+
 import org.apache.log4j.Logger;
 
-class ExitCommand implements Command {
+class ExitCommand extends GenericCommand {
 	
 	private static final Object EXIT = "Stop application";
 	private static final String COMMAND_DESCRIPTION = "Exits from command processor";
@@ -30,13 +30,4 @@ class ExitCommand implements Command {
        ms.doEvent(getDescription());
     }
 
-    @Override
-    public String getName() {
-        return COMMAND_NAME;
-    }
-
-    @Override
-    public String getDescription() {
-        return COMMAND_DESCRIPTION;
-    }
 }

@@ -1,6 +1,5 @@
 package commands;
 
-import interfaces.Command;
 import interfaces.Listener;
 
 import java.util.ArrayList;
@@ -22,7 +21,7 @@ public class CommandProcessor {
 	private static final String KEY_COMMAND_END = "/";
 	private static final Logger log = Logger.getLogger(CommandProcessor.class);
 	private static final String MULTILINE_MODE_INPUT_CONDITION = "track -a";
-    private List<CommandLoader<?>> commands;
+    private List<GenericCommand> commands;
 	private static Listener ms;
     private static String consoleEncoding;
     private Scanner scanner;
@@ -33,31 +32,16 @@ public class CommandProcessor {
     private CommandProcessor() {
         CommandProcessor.ms = ManagementSystem.getInstance();
         commands = new ArrayList<>();
-        commands.add(new CommandLoader<>(TrackCommand.class));
-		commands.add(new CommandLoader<>(GenreCommand.class));
-		commands.add(new CommandLoader<>(SearchCommand.class));
-		commands.add(new CommandLoader<>(ExitCommand.class));
+        commands.add(new GenericCommand(TrackCommand.class));
+		commands.add(new GenericCommand(GenreCommand.class));
+		commands.add(new GenericCommand(SearchCommand.class));
+		commands.add(new GenericCommand(ExitCommand.class));
+		for (GenericCommand cmd : commands) {
+			cmd.getInstance();
+		}
 		this.hp = new HelpCommand(commands);
         this.scanner = new Scanner(System.in, consoleEncoding);
         this.parser = new CommandParser();
-    }
-    
-    class CommandLoader<T extends Command> {
-        Class<? extends T> commandClass;
-     
-        public CommandLoader(Class<? extends T>  commandClass) {
-            this.commandClass = commandClass;
-        }
-     
-        public T getInstance() {
-        	T instance = null;
-			try {
-				instance = commandClass.newInstance();
-			} catch (InstantiationException | IllegalAccessException e) {
-				ms.doEvent(e);
-			}
-			return instance;
-        }
     }
     
 	private static class SingletonHolder {
@@ -96,8 +80,7 @@ public class CommandProcessor {
 	            	result = hp.execute(parser.args);
 	            	isFinded = true;
 	            }else
-		            for(CommandLoader<?> cl:commands){
-		            	Command cmd = (Command)cl.getInstance();
+		            for(GenericCommand cmd:commands){
 		            	if(cmd.getName().equalsIgnoreCase(parser.command)){
 		            		result = cmd.execute(parser.args);
 		            		isFinded = true;
@@ -105,7 +88,7 @@ public class CommandProcessor {
 		            	}
 		            }
 		            if(!isFinded)
-		            	ms.doEvent(Command.COMMAND_NOT_FOUND);
+		            	ms.doEvent(GenericCommand.COMMAND_NOT_FOUND);
           
 	        } while (result);
     	}catch(RuntimeException e){
