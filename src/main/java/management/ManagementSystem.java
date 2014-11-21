@@ -161,7 +161,7 @@ public class ManagementSystem implements Listener {
      * Отправляет на вывод список всех записей в бибилотеке
      */
 	public void printAllTracksTitle(){
-    	notifyListeners(musicLibrary.getAllRecords());
+		notifyListeners(new ListContainer(musicLibrary.getAllRecords()));
     }
 
     /**
@@ -223,7 +223,7 @@ public class ManagementSystem implements Listener {
 	public void insertTrack(String ... args) {
 		try{
 			notifyListeners(STATUS_INSERTING);
-			List<String> genreList = new ArrayList<>();
+			Collection<String> genreList = new HashSet<>();
 			for(int i=0;i<args.length; i=i+5){
 				Record newTrack = new Track (args[i], args[i+1], args[i+2], args[i+3], args[i+4]);
 				if (((i)%5)==0 && newTrack !=null){
@@ -241,8 +241,8 @@ public class ManagementSystem implements Listener {
     /**
      * Изменяет трек под соответствующим названием
      * @param trackTitle название трека для изменения
-     * @param args массив параметров трека в последовательности <br>
-     *  {название, исполнитель, альбом, длинна трека}
+     * @param args массив параметров трека и новых значений <br>
+     * может быть передано любое количество пар {параметр - значение}
      */
 	public void setTrack(String trackTitle, String ... args){
 		if(args.length%2 != 1)
@@ -299,7 +299,7 @@ public class ManagementSystem implements Listener {
 		if (rList.size()<=1)
 			removeRecord(trackTitle, rList.get(0).getGenre());
 		else{
-			notifyListeners(rList);
+			notifyListeners(new ListContainer(rList));
 			removeCaseSeveralRecords(trackTitle, rList);
 			try {
 				selectionThread.join();
