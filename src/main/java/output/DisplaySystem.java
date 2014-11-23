@@ -10,6 +10,7 @@ import java.util.Iterator;
  * Created by Morthanion on 31.10.2014.
  */
 public class DisplaySystem implements Listener {
+	private static final DisplaySystem INSTANCE = new DisplaySystem();
 	private static final String DELIMITER = " | ";
 	private static final String ERROR = "Error: ";
 	private static final String LIST_FORMATTER = "%-30s %-10s %-35s %-20s %-25s%n";
@@ -40,25 +41,29 @@ public class DisplaySystem implements Listener {
         else if (arg instanceof HelpContainer) {
             DisplayHelp(((HelpContainer) arg).getName(), ((HelpContainer) arg).getDescription());
         }
+        else if (arg instanceof StringContainer){
+        	DisplayMessageNewlineOff((StringContainer) arg);
+        }
         else throw new IllegalArgumentException("Output of "+arg.getClass().toString()+" is not implemented");
     }
-
-    private static class SingletonHolder {
-		private static final DisplaySystem INSTANCE = new DisplaySystem();
-	}
 
     /**
      * Возвращет ссылку на единственный экземпляр класса
      * @return сслыку на единственный экземпляр
      */
 	public static DisplaySystem getInstance() {
-		return SingletonHolder.INSTANCE;
+		return INSTANCE;
 	}
 
     private void DisplayMessage(String message)
     {
         displayStream.println(message);
     }
+    
+    private void DisplayMessageNewlineOff(StringContainer message){
+        displayStream.print(message.getLine());
+    }
+    
     private void DisplayError(Exception e){
         displayStream.println(ERROR + e.getMessage());
        // e.printStackTrace();

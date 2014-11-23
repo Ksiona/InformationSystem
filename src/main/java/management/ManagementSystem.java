@@ -28,10 +28,11 @@ import output.DisplaySystem;
 import output.ListContainer;
 
 /**
- * Управлет изменениями в модели и отправляет информацию на выход
+ * Управляет изменениями в модели и отправляет информацию на выход
  */
 public class ManagementSystem implements Listener {
 	
+	private static final ManagementSystem INSTANCE = new ManagementSystem();
 	private static final String STORAGE = "Storage/";
 	private static final String UNSORTED_RECORDSLIST_NAME = "Unsorted";
 	private static final String FILE_EXTENSION = ".bin";
@@ -68,23 +69,19 @@ public class ManagementSystem implements Listener {
         MusicLibrary library = new MusicLibrary(loadGenres(STORAGE));
         library.AddListener(this);
         this.musicLibrary = library;
-        
     }
-
-	private static class SingletonHolder {
-		private static final ManagementSystem INSTANCE = new ManagementSystem();
-	}
 
     /**
      * Возвращет ссылку на единственный экземпляр класса
      * @return ссылку на единственный экземпляр класса
      */
 	public static ManagementSystem getInstance() {
-		return SingletonHolder.INSTANCE;
+		return INSTANCE;
 	}
 
     /**
      * Загружает все файлы из хранилища
+     * Создает список из жанров, содержащихся более чем в 1 файле
      * @param storage адрес хранилища
      * @return Список всех списков жанра
      */
@@ -123,6 +120,8 @@ public class ManagementSystem implements Listener {
 
     /**
      * Записывает все несохраненные изменения в файловую систему
+     * Сравнивает список жанров со списком имен файлов в папке с библиотекой
+     * файлы с расширением bin и названиями не найдеными в списке жанров, удаляются
      */
 	public void writeUnsavedChanges() {
 		if(!genreFilesDuplicates.isEmpty()){
@@ -136,7 +135,7 @@ public class ManagementSystem implements Listener {
 		   
 		    List<String> filesNameList = new ArrayList<>();
 		    for(String path : dir.list())
-		    	if(new File(STORAGE + path).isFile())
+		    	if(path.endsWith(FILE_EXTENSION) && new File(STORAGE + path).isFile())
 		    		filesNameList.add(path.substring(0, path.lastIndexOf(DOT)));
 	
 		    boolean match;
@@ -160,7 +159,7 @@ public class ManagementSystem implements Listener {
     /**
      * Отправляет на вывод список всех записей в бибилотеке
      */
-	public void printAllTracksTitle(){
+	public void printAllTracksInfo(){
 		notifyListeners(new ListContainer(musicLibrary.getAllRecords()));
     }
 
@@ -215,15 +214,19 @@ public class ManagementSystem implements Listener {
     }
 
     /**
-     * Добавляет новый трек в соответствующий ему список жанра,
-     * создавая таковой при необходимости.
+     * Добавляет один или несколько новых треков в библиотеку,
+     * в ходе добавления заполняется список жанров, в которые были внесены изменения.
+     * Запись в файловую систему осуществляется после добавления всех треков, по созданному списку жанров
      * @param args массив параметров трека в последовательности <br>
      *             { жанр, название, исполнитель, альбом, длинна трека }
+     * @exception  ArrayIndexOutOfBoundsException - передано количество аргументов не кратное количеству заполняемых полей трека
+     * треки добавленные до исключительной ситуации сохраняются.
      */
 	public void insertTrack(String ... args) {
+		Collection<String> genreList = null;
 		try{
 			notifyListeners(STATUS_INSERTING);
-			Collection<String> genreList = new HashSet<>();
+			genreList = new HashSet<>();
 			for(int i=0;i<args.length; i=i+5){
 				Record newTrack = new Track (args[i], args[i+1], args[i+2], args[i+3], args[i+4]);
 				if (((i)%5)==0 && newTrack !=null){
@@ -231,10 +234,12 @@ public class ManagementSystem implements Listener {
 					genreList.add(newTrack.getGenre());
 				}
 			}
-			for (String genreName:genreList)
-				serialize(genreName);
 		}catch(ArrayIndexOutOfBoundsException e){
 			throw new IllegalArgumentException(WARNING_WRONG_PARAMETER);
+		}finally{
+			if(!genreList.isEmpty())
+				for (String genreName:genreList)
+					serialize(genreName);
 		}
 	}
 
@@ -243,6 +248,9 @@ public class ManagementSystem implements Listener {
      * @param trackTitle название трека для изменения
      * @param args массив параметров трека и новых значений <br>
      * может быть передано любое количество пар {параметр - значение}
+     * @exception IllegalArgumentException - переданы не парные аргументы 
+     * @exception ArrayIndexOutOfBoundsException - передано "значение" равное "параметру"
+     * @exception Ошибки интроспекции или рефлексивных вызовов методов
      */
 	public void setTrack(String trackTitle, String ... args){
 		if(args.length%2 != 1)
@@ -288,6 +296,7 @@ public class ManagementSystem implements Listener {
     /**
      * Удаляет треки с данным названием, в случае, если их несколько -
      * отправляет на вывод диалог с предупреждением и поступает соответственно ответу
+     * пока ответ не получен основной поток исполнения приостановлен
      * @param trackTitle название трека для удаления
      */
 	public void removeRecord(String trackTitle) {
@@ -309,6 +318,11 @@ public class ManagementSystem implements Listener {
 		}
 	}
 	
+    /**
+     * Обработка в отдельном потоке решения пользователя
+     * @param trackTitle название трека для удаления
+     * @param rList - список треков с таким названием
+     */
 	private void removeCaseSeveralRecords(final String trackTitle, final List<Record> rList){
 		selectionThread = new Thread(new Runnable() {	
 			@Override
@@ -403,6 +417,7 @@ public class ManagementSystem implements Listener {
      * @param genreName1 название первого жанра
      * @param genreName2 название второго жанра
      * @param newGenreName название результирующего жанра
+     * @see moveAllRecordsAnotherSet()
      */
     public void combineRecordsLists(String genreName1, String genreName2, String newGenreName) {
     	if(newGenreName.equalsIgnoreCase(genreName1))
@@ -428,6 +443,7 @@ public class ManagementSystem implements Listener {
      * Изменяет название жанра
      * @param oldGenreName старое название
      * @param newGenreName новое название
+     * @see moveAllRecordsAnotherSet()
      */
 	public void setRecordsListName(String oldGenreName, String newGenreName) {
 		notifyListeners(STATUS_SETTING);
@@ -454,6 +470,11 @@ public class ManagementSystem implements Listener {
         notifyListeners(new ListContainer(fits));
     }
     
+    /**
+     * Запись объекта в файловую систему с использованием механизма сериализации, 
+     * создается файл с именем объекта и расширением .bin
+     * @param objName - название объекта.
+     */
     private void serialize(String objName){
 		try (ObjectOutputStream objectOutStream = new ObjectOutputStream(new FileOutputStream(new File(STORAGE+objName+FILE_EXTENSION)))){		
 	    	Object obj = musicLibrary.getRecordsList(objName).getRecords();
@@ -465,6 +486,11 @@ public class ManagementSystem implements Listener {
 		}
 	}
 	
+    /**
+     * Восстановление объекта из файла с использованием механизма сериализации, 
+     * @param fileName - имя файла.
+     * @param classType - класс, объект которого мы рассчитываем восстановить 
+     */
     private <classType> Object deserialize(String fileName, Class<?> classType) throws IOException, ClassNotFoundException{
 		Object obj = null;
 		try (ObjectInputStream objectInStream = new ObjectInputStream(new FileInputStream(new File(fileName)));) {
@@ -474,8 +500,6 @@ public class ManagementSystem implements Listener {
 		}
 		return obj;
 	}
-    
-
 
     @Override
     public void doEvent(Object arg) {
@@ -483,7 +507,7 @@ public class ManagementSystem implements Listener {
     }
 
     /**
-     * Оповещает о событии всех слушателей, перправляя им сопутствующую информацию
+     * Оповещает о событии всех слушателей, переправляя им сопутствующую информацию
      * @param arg информация для передачи
      */
     public void notifyListeners(Object arg) {

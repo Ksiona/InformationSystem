@@ -10,6 +10,8 @@ import java.util.Scanner;
 import management.ManagementSystem;
 
 import org.apache.log4j.Logger;
+
+import output.StringContainer;
  
 /**
  * @author Ksiona
@@ -59,7 +61,10 @@ public class CommandProcessor {
 			return instance;
         }
     }
-    
+    /**
+     * Отложенная инициализация
+     * Вызвана необходимостью получения параметра consoleEncoding
+     */
 	private static class SingletonHolder {
 		private static final CommandProcessor INSTANCE = new CommandProcessor();
 	}
@@ -73,7 +78,7 @@ public class CommandProcessor {
     	try{
 	        boolean result = true; 
 	        do {
-	        	ms.doEvent(INVITATION_TO_PRINT);
+	        	ms.doEvent(new StringContainer(INVITATION_TO_PRINT));
 		        boolean isFinded = false;
 	        	String fullCommand = EMPTY_STRING;
 	        	String line = scanner.nextLine();

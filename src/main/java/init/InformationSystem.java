@@ -18,19 +18,19 @@ public class InformationSystem {
 	
 	private static final String START = "Start application";
 	private static final String WELCOME_MESSAGE = "Welcome to the information system \"Music Library\" \r\n"
-			+ "To get instructions on how to use enter command \"help /\"";
+			+ "To get instructions on how to use enter command \"help\"";
 	private static final String CONSOLE_ENCODING = "console.encoding";
-	public static final String CONSOLE_ENCODING_VALUE = "Cp866";
+	private static final String CONSOLE_ENCODING_VALUE = "Cp866";
 	private static final String FILE_ENCODING = "file.encoding";
 	private static final String FILE_ENCODING_VALUE = "UTF-8";
 	private static final String WARNING_ENCODING = "Unsupported encoding set for console, the application will be closed, please contact support ";
 	private static final String WARNING_UNHANDLE = "A critical error has occurred, the application will be closed, please contact support";
-	private static ManagementSystem ms;
     private static final Logger rlog = Logger.getRootLogger();
     private static final Logger log = Logger.getLogger(InformationSystem.class);
+	private  ManagementSystem ms;
     
     public InformationSystem() {
-    	InformationSystem.ms = ManagementSystem.getInstance();
+    	this.ms = ManagementSystem.getInstance();
 		initCommandProcessor();
 	}
 

@@ -72,7 +72,7 @@ class TrackCommand implements Command {
 				ms.printTrackInfo(arguments[0]);
 				break;
 			case p:
-				ms.printAllTracksTitle();
+				ms.printAllTracksInfo();
 				break;
 			case g:
 				ms.moveRecordAnotherSet(arguments[0], arguments[1]);
