@@ -5,6 +5,8 @@ import java.util.List;
 public class SubCommand{
 	
 	private static final String WARNING_NO_COMMAND_PARAMETER = "You must specify the parameter. Type \"help\" with command, to view available";
+	private static final String DASH = "-";
+	private static final String EMPTY_STRING = "";
 	private String key;
 	private String format;
 	private String formatDescription;
@@ -52,7 +54,7 @@ public class SubCommand{
 		if (args == null)
 			throw new IndexOutOfBoundsException(WARNING_NO_COMMAND_PARAMETER);
 		else try{
-			key = args[0].replaceAll("-", "");
+			key = args[0].replaceAll(DASH, EMPTY_STRING);
 			for(SubCommand cp : subCommands)
 				if (cp.getCommandKey().equalsIgnoreCase(key))
 					subCommand = cp;

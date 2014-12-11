@@ -16,6 +16,7 @@ public class DisplaySystem implements Listener {
 	private static final String LIST_FORMATTER = "%-30s %-10s %-35s %-20s %-25s%n";
 	private static final String HELP_FORMATTER = "%-50s %-70s%n";
     private static final PrintStream displayStream = new PrintStream(System.out);
+	private static final String OUTPUT_NOT_IMPLEMENTED = " output is not implemented";
     private DisplaySystem(){}
 
     /**
@@ -44,7 +45,7 @@ public class DisplaySystem implements Listener {
         else if (arg instanceof StringContainer){
         	DisplayMessageNewlineOff((StringContainer) arg);
         }
-        else throw new IllegalArgumentException("Output of "+arg.getClass().toString()+" is not implemented");
+        else throw new IllegalArgumentException(arg.getClass().toString()+ OUTPUT_NOT_IMPLEMENTED);
     }
 
     /**
